@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "Vue.volar",
+    "EditorConfig.EditorConfig",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "alibaba-cloud.tongyi-lingma",
+    "davidanson.vscode-markdownlint",
+    "bradlc.vscode-tailwindcss",
+    "csstools.postcss",
+    "mikestead.dotenv",
+    "eamodio.gitlens",
+    "antfu.iconify"
+  ]
+}
