@@ -6,7 +6,8 @@ const icon = computed(() => (isDark.value ? MoonIcon : SunIcon))
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center">
+  <ChatHeader />
+  <div class="flex items-center">
     <Button @click="$router.push('/about')">Go to about</Button>
     <component :is="icon" class="size-6" @click="toggleDark()" />
   </div>

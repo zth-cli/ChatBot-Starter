@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SidebarProvider from '@/components/Sidebar/SidebarProvider.vue'
 // https://github.com/vueuse/head
 useHead({
   title: '博闻智星',
@@ -23,5 +24,7 @@ useHead({
 </script>
 
 <template>
-  <RouterView />
+  <SidebarProvider>
+    <RouterView />
+  </SidebarProvider>
 </template>
