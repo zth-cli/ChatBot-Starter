@@ -19,6 +19,12 @@ watch(isWorkspace, (value) => {
     isCollapsed.value = true
   }
 })
+
+const handleSendMessage = () => {
+  if (!message.value) return
+  sendMessage(message.value)
+  message.value = ''
+}
 </script>
 
 <template>
@@ -34,7 +40,7 @@ watch(isWorkspace, (value) => {
         </div>
         <div class="flex items-end mx-auto px-4 bg-background pb-4 md:pb-12 gap-2 w-full md:max-w-3xl">
           <Textarea v-model="message" class="bg-muted rounded-lg resize-none" placeholder="发送消息提问" />
-          <Button @click="sendMessage(message)">发送</Button>
+          <Button @click="handleSendMessage">发送</Button>
           <Button @click="isWorkspace = !isWorkspace">切换工作台模式</Button>
         </div>
       </div>
