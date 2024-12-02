@@ -1,34 +1,43 @@
 <script setup lang="ts">
+import { SidebarProviderContext } from '@/components/Sidebar/SidebarProvider.vue'
+import ChatMessages from '@/components/ChatMessages/index.vue'
 import { storeToRefs } from 'pinia'
 import { useChatStore } from '@/store'
-import { useChat } from '@/chatbot/main/demo'
+import { useChat } from '@/chatbot'
+import { cn } from '@/lib'
 
 const message = ref('')
-const route = useRoute()
 const chatStore = useChatStore()
-const { currentChatMessages, currentChatId } = storeToRefs(chatStore)
+const { currentChatMessages } = storeToRefs(chatStore)
 const { sendMessage, stopStream } = useChat({ scrollToBottom: () => {} })
+const isWorkspace = ref(false)
 
-// 使用类型断言
-const chatId = computed(() => {
-  const params = route.params as { id?: string }
-  return params.id || '' // 提供默认值以避免 undefined
+const { isCollapsed } = inject<SidebarProviderContext>('sidebar')!
+// isWorkspace为true时，工作台模式，侧边栏折叠
+watch(isWorkspace, (value) => {
+  if (value) {
+    isCollapsed.value = true
+  }
 })
 </script>
 
 <template>
-  <div class="flex flex-col min-w-0 h-full bg-background">
-    <ChatHeader />
-    <!-- {{ currentChatMessages }} -->
-    <div class="flex-1 overflow-auto">
-      <div v-for="message in currentChatMessages" :key="message.id" class="w-full mx-auto max-w-3xl px-4">
-        {{ message.content }}
+  <div class="flex w-full h-full">
+    <ChatContainer v-model="isWorkspace">
+      <template #workspace>
+        <P>工作台</P>
+      </template>
+      <div :class="cn('flex flex-col h-full bg-background w-full')">
+        <ChatHeader />
+        <div class="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4">
+          <ChatMessages :messages="currentChatMessages" :is-at-bottom="true" />
+        </div>
+        <div class="flex items-end mx-auto px-4 bg-background pb-4 md:pb-12 gap-2 w-full md:max-w-3xl">
+          <Textarea v-model="message" class="bg-muted rounded-lg resize-none" placeholder="发送消息提问" />
+          <Button @click="sendMessage(message)">发送</Button>
+          <Button @click="isWorkspace = !isWorkspace">切换工作台模式</Button>
+        </div>
       </div>
-      <div class="shrink-0 min-w-[24px] min-h-[24px]"></div>
-    </div>
-    <div class="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
-      <Textarea v-model="message" class="bg-muted rounded-lg resize-none" placeholder="发送消息提问" />
-      <Button @click="sendMessage(message)">发送</Button>
-    </div>
+    </ChatContainer>
   </div>
 </template>

@@ -1,7 +1,7 @@
 import { ChatPluginManifest, PluginType, Meta, PluginSchema, PluginRequestPayload } from '@rzx/chat-plugin-sdk'
 import { ChatMessage, ImageMessage, MessageType, ToolCall } from './types'
 import { AbortError, fileToBase64, isFileOrBlobInstance } from '@/lib'
-import { ImageMimeTypes } from '@/chatbot/contants/mimeTypes'
+import { ImageMimeTypes } from '@/chatbot/constants/mimeTypes'
 import { Md5 } from 'ts-md5'
 
 export const getPluginTitle = (meta?: Meta) => meta?.title

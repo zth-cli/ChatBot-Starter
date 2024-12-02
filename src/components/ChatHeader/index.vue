@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { PlusIcon } from 'lucide-vue-next'
 defineOptions({ name: 'ChatHeader' })
 </script>
 

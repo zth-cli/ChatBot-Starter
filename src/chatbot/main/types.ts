@@ -158,7 +158,7 @@ export type UseChatParams = {
   /**
    * @description 滚动到底部
    */
-  scrollToBottom: () => void
+  scrollToBottom?: () => void
 }
 export type ChatHook = {
   /**
@@ -171,3 +171,16 @@ export type ChatHook = {
   stopStream: (params?: any) => void
 }
 export type UseChatHookFn = (params: UseChatParams) => ChatHook
+
+export interface UploadFileInfo {
+  id: string
+  name: string
+  batchId?: string | null
+  percentage?: number | null
+  status: 'pending' | 'uploading' | 'finished' | 'removed' | 'error'
+  url?: string | null
+  file?: File | null
+  thumbnailUrl?: string | null
+  type?: string | null
+  fullPath?: string | null
+}

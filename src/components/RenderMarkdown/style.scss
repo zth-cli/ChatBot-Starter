@@ -1,0 +1,94 @@
+.md_container {
+  .vue-code-block {
+    margin: 1rem 0;
+  }
+
+  a {
+    color: #369eff !important;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: revert;
+    font-size: revert;
+  }
+  h1 {
+    line-height: 36px;
+    margin: 12px 0;
+  }
+  h2 {
+    line-height: 32px;
+    margin: 12px 0;
+  }
+  h3,
+  h4 {
+    line-height: 28px;
+    margin: 12px 0;
+  }
+  ol > li {
+    list-style-type: decimal;
+    margin-left: 20px;
+  }
+  ul {
+    list-style-type: initial;
+    li {
+      margin-left: 12px;
+    }
+  }
+  pre {
+    overflow-x: auto;
+    overflow-wrap: break-word;
+  }
+  p {
+    word-wrap: break-word;
+    code {
+      color: dodgerblue;
+    }
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: hsl(var(--background, #fff));
+    th,
+    td {
+      padding: 8px 12px;
+      text-align: center;
+      border: 1px solid hsl(var(--border, #e8e8e8));
+      font-size: 14px;
+    }
+
+    th {
+      background-color: hsl(var(--muted, #f5f5f5));
+      font-weight: 500;
+      color: hsl(var(--muted-foreground, #333));
+    }
+
+    tr {
+      &:hover {
+        background-color: hsl(var(--muted, #fafafa));
+      }
+
+      td {
+        color: hsl(var(--muted-foreground, #666));
+      }
+    }
+  }
+  .typing-cursor {
+    display: inline-block;
+    animation: blink 1s step-end infinite;
+    margin-left: 2px;
+  }
+
+  @keyframes blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+}

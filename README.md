@@ -3,6 +3,7 @@
 ## ✨ 特性
 
 ### 🤖 AI 对话能力
+
 - **🎯 开箱即用**：预置 OpenAI 和 Ollama 风格的对话界面
 - **🧩 无头组件**：提供可复用的无头对话组件，轻松构建自定义界面
 - **🔄 流式响应**：支持 AI 回复的流式输出
@@ -10,6 +11,7 @@
 - **🎨 主题切换**：支持多种对话界面主题
 
 ### 🛠️ 技术栈
+
 - **⚡️ 极致性能**：基于 Vue 3、Vite、pnpm、esbuild 构建，开发体验快如闪电
 - **🗂 文件路由**：基于文件系统的路由，自动生成路由配置
 - **📦 组件自动导入**：自动按需导入组件，无需手动注册
@@ -26,6 +28,7 @@
 ### OpenAI 风格对话
 
 预置了类似 ChatGPT 的对话界面：
+
 - 流式输出响应
 - Markdown 格式支持
 - 代码高亮显示
@@ -34,26 +37,21 @@
 
 ```html
 <template>
-  <OpenAIChat
-    :api-key="OPENAI_API_KEY"
-    :model="gpt-3.5-turbo"
-  />
+  <OpenAIChat :api-key="OPENAI_API_KEY" :model="gpt-3.5-turbo" />
 </template>
 ```
 
 ### Ollama 风格对话
 
 支持本地部署的 Ollama 模型：
+
 - 支持多种开源模型
 - 本地部署，数据安全
 - 可自定义模型参数
 
 ```html
 <template>
-  <OllamaChat
-    :api-base="http://localhost:11434"
-    :model="llama2"
-  />
+  <OllamaChat :api-base="http://localhost:11434" :model="llama2" />
 </template>
 ```
 
@@ -63,15 +61,11 @@
 
 ```vue
 <script setup>
-import { useAIChat } from '@/composables/useAIChat'
+import { useChat } from '@/chatbot'
 
-const { messages, sendMessage, isLoading } = useAIChat({
-  apiType: 'openai', // 或 'ollama'
-  // ... 其他配置
-})
+const { sendMessage, stopStream } = useChat()
 </script>
 ```
-
 
 ## 🚀 快速开始
 
@@ -123,14 +117,14 @@ pnpm build
 
 ```html
 <template>
-  <Button variant="default">点击我</Button>
-  <Dialog>
+  <button variant="default">点击我</button>
+  <dialog>
     <DialogTrigger>打开对话框</DialogTrigger>
     <DialogContent>
       <DialogHeader>
         <DialogTitle>对话框标题</DialogTitle>
       </DialogHeader>
     </DialogContent>
-  </Dialog>
+  </dialog>
 </template>
 ```

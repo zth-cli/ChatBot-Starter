@@ -84,8 +84,8 @@ export default ({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.svg', 'safari-pinned-tab.svg'],
         manifest: {
-          name: 'Vitesse',
-          short_name: 'Vitesse',
+          name: 'Chatbot',
+          short_name: 'Chatbot',
           theme_color: '#ffffff',
           icons: [
             {

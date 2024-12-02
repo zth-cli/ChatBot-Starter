@@ -1,6 +1,6 @@
-import { ChatCore } from '.'
-import { ChatApiClient, ChatPayload } from './ChatApiClient'
-import { ChatMessage, MessageStatus, UseChatHookFn } from './types'
+import { ChatCore } from './main'
+import { ChatApiClient, ChatPayload } from './main/ChatApiClient'
+import { ChatMessage, MessageStatus, UseChatHookFn } from './main/types'
 import { useChatStore, useToolStore } from '@/store'
 
 export const useChat: UseChatHookFn = ({ scrollToBottom }) => {
@@ -53,10 +53,22 @@ export const useChat: UseChatHookFn = ({ scrollToBottom }) => {
     new ChatApiClient(`${baseUrl}/llm/skillCenter/plugin/chat/openai/formdata`, '61c36ab3c518418b916a6ffc2190d170'),
   )
 
+  const addUserMessage = (message: string) => {
+    const newMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: message,
+      status: MessageStatus.COMPLETE,
+      date: new Date().toISOString(),
+    }
+    chatStore.insertChatMessage(newMessage)
+  }
+
   return {
     sendMessage: async (message: string) => {
       const chatId = chatStore.currentChatId
       if (!chatId) return
+      addUserMessage(message)
       chatCore.setApiClientHeaders({
         ChatToken: '27ecabac-764e-4132-b4d2-fa50b7ec1b65',
       })
