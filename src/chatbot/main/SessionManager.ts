@@ -9,24 +9,50 @@ export class SessionManager {
     this.config = config
   }
 
-  createSession(id: string): ChatSession {
-    if (this.sessions.size >= this.config.maxConcurrentChats) {
-      throw new ChatError('Maximum concurrent chats reached', 'MAX_SESSIONS_EXCEEDED')
-    }
+  private findOldestSession(): string | null {
+    let oldestTime = Infinity
+    let oldestChatId: string | null = null
 
-    const session: ChatSession = {
-      id,
-      controller: new AbortController(),
-      currentMessage: null,
-      isLoading: false,
-      retryCount: 0,
+    this.sessions.forEach((session, chatId) => {
+      if (session.isLoading && session.startTime < oldestTime) {
+        oldestTime = session.startTime
+        oldestChatId = chatId
+      }
+    })
+
+    return oldestChatId
+  }
+  getOrCreateSession(chatId: string, onStopStream: (chatId: string) => void): ChatSession {
+    if (!this.sessions.has(chatId)) {
+      if (this.sessions.size >= this.config.maxConcurrentChats) {
+        const oldestSession = this.findOldestSession()
+        if (oldestSession) {
+          onStopStream(oldestSession)
+        }
+        if (this.sessions.size >= this.config.maxConcurrentChats) {
+          throw new ChatError('Maximum concurrent chats reached', 'MAX_SESSIONS_EXCEEDED')
+        }
+      }
+
+      const session: ChatSession = {
+        id: chatId,
+        controller: new AbortController(),
+        currentMessage: null,
+        isLoading: false,
+        retryCount: 0,
+        startTime: Date.now(),
+      }
+      this.sessions.set(chatId, session)
     }
-    this.sessions.set(id, session)
-    return session
+    return this.sessions.get(chatId)!
   }
 
-  getSession(id: string): ChatSession | undefined {
-    return this.sessions.get(id)
+  getSession(chatId: string): ChatSession | undefined {
+    if (!this.validateSession(chatId)) {
+      this.deleteSession(chatId)
+      return undefined
+    }
+    return this.sessions.get(chatId)
   }
 
   updateSession(id: string, updates: Partial<ChatSession>): void {
@@ -59,7 +85,19 @@ export class SessionManager {
       }
     }
   }
-
+  cleanupSessions(maxAge: number = 1000 * 60 * 30) {
+    // 默认30分钟
+    const now = Date.now()
+    this.sessions.forEach((session, chatId) => {
+      if (now - session.startTime > maxAge) {
+        this.deleteSession(chatId)
+      }
+    })
+  }
+  private validateSession(chatId: string): boolean {
+    const session = this.sessions.get(chatId)
+    return session !== undefined && !session.controller.signal.aborted
+  }
   getSessionStatus() {
     return {
       activeSessions: this.sessions.size,

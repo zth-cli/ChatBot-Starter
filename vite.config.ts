@@ -1,5 +1,5 @@
 import path from 'path'
-import { defineConfig } from 'vite'
+import { loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import Layouts from 'vite-plugin-vue-layouts'
@@ -17,110 +17,113 @@ import autoprefixer from 'autoprefixer'
 import tailwind from 'tailwindcss'
 const resolve = (dir: string) => path.join(__dirname, dir)
 // https://vitejs.dev/config/
-export default defineConfig({
-  resolve: {
-    alias: {
-      '@': resolve('src'),
-    },
-  },
-  css: {
-    postcss: {
-      plugins: [tailwind() as any, autoprefixer() as any],
-    },
-  },
-  plugins: [
-    // https://github.com/posva/unplugin-vue-router
-    VueRouter({
-      extensions: ['.vue', '.md'],
-      dts: './typed-router.d.ts',
-    }),
-    vue({
-      include: [/\.vue$/, /\.md$/],
-      script: {
-        defineModel: true,
-        propsDestructure: true, // 解构 props
+export default ({ mode }) => {
+  const env = loadEnv(mode, process.cwd())
+  return {
+    resolve: {
+      alias: {
+        '@': resolve('src'),
       },
-    }),
-    vueJsx(),
-
-    // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
-    Layouts(),
-    Inspect(),
-
-    // https://github.com/antfu/unplugin-auto-import
-    AutoImport({
-      imports: [
-        'vue',
-        '@vueuse/head',
-        '@vueuse/core',
-        VueRouterAutoImports,
-        {
-          // add any other imports you were relying on
-          'vue-router/auto': ['useLink'],
+    },
+    css: {
+      postcss: {
+        plugins: [tailwind() as any, autoprefixer() as any],
+      },
+    },
+    plugins: [
+      // https://github.com/posva/unplugin-vue-router
+      VueRouter({
+        extensions: ['.vue', '.md'],
+        dts: './typed-router.d.ts',
+      }),
+      vue({
+        include: [/\.vue$/, /\.md$/],
+        script: {
+          defineModel: true,
+          propsDestructure: true, // 解构 props
         },
-      ],
-      dts: './auto-imports.d.ts',
-      dirs: ['src/composables', 'src/stores'],
-      vueTemplate: true,
-    }),
+      }),
+      vueJsx(),
 
-    //
-    Components({
-      include: [
-        /\.[tj]sx?$/, // .ts, .tsx, .js, .jsx
-        /\.vue$/,
-        /\.vue\?vue/, // .vue
-        /\.md$/, // .md
-      ],
-      extensions: ['vue', 'md'],
-      dirs: ['src/components'],
-      deep: true,
-      resolvers: [],
-    }),
-    // https://github.com/antfu/vite-plugin-pwa
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'safari-pinned-tab.svg'],
-      manifest: {
-        name: 'Vitesse',
-        short_name: 'Vitesse',
-        theme_color: '#ffffff',
-        icons: [
+      // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
+      Layouts(),
+      Inspect(),
+
+      // https://github.com/antfu/unplugin-auto-import
+      AutoImport({
+        imports: [
+          'vue',
+          '@vueuse/head',
+          '@vueuse/core',
+          VueRouterAutoImports,
           {
-            src: '/pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: '/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-          {
-            src: '/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable',
+            // add any other imports you were relying on
+            'vue-router/auto': ['useLink'],
           },
         ],
-      },
-    }),
-    // https://github.com/feat-agency/vite-plugin-webfont-dl
-    WebfontDownload(),
+        dts: './auto-imports.d.ts',
+        dirs: ['src/composables', 'src/stores'],
+        vueTemplate: true,
+      }),
 
-    // https://github.com/webfansplz/vite-plugin-vue-devtools
-    VueDevTools(),
-  ],
-  server: {
-    port: 3334,
-    host: '0.0.0.0',
-    open: true,
-    proxy: {
-      '/api': {
-        target: 'localhost',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+      //
+      Components({
+        include: [
+          /\.[tj]sx?$/, // .ts, .tsx, .js, .jsx
+          /\.vue$/,
+          /\.vue\?vue/, // .vue
+          /\.md$/, // .md
+        ],
+        extensions: ['vue', 'md'],
+        dirs: ['src/components'],
+        deep: true,
+        resolvers: [],
+      }),
+      // https://github.com/antfu/vite-plugin-pwa
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.svg', 'safari-pinned-tab.svg'],
+        manifest: {
+          name: 'Vitesse',
+          short_name: 'Vitesse',
+          theme_color: '#ffffff',
+          icons: [
+            {
+              src: '/pwa-192x192.png',
+              sizes: '192x192',
+              type: 'image/png',
+            },
+            {
+              src: '/pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+            },
+            {
+              src: '/pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any maskable',
+            },
+          ],
+        },
+      }),
+      // https://github.com/feat-agency/vite-plugin-webfont-dl
+      WebfontDownload(),
+
+      // https://github.com/webfansplz/vite-plugin-vue-devtools
+      VueDevTools(),
+    ],
+    server: {
+      port: 3334,
+      host: '0.0.0.0',
+      open: true,
+      proxy: {
+        '/api': {
+          target: env.VITE_HTTP_PROXY,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ''),
+        },
       },
     },
-  },
-})
+  }
+}

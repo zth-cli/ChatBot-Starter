@@ -2,15 +2,17 @@ import { ChatConfig, MessageHandler, ChatMessage, MessageStatus, ToolCall, ChatS
 import { SessionManager } from './SessionManager'
 import { StreamProcessor } from './StreamProcessor'
 import { NetworkError } from './ChatError'
-import { ChatApiClient } from './ChatApiClient'
+import { ChatApiClient, ChatPayload } from './ChatApiClient'
+import { sleep } from './helper'
 
 export class ChatCore {
   private sessionManager: SessionManager
   private streamProcessor: StreamProcessor
+  private currentSessionId: string | undefined
 
   constructor(
     private config: ChatConfig,
-    private messageHandler: MessageHandler,
+    private messageHandler: MessageHandler & { onStop: (message: ChatMessage) => void },
     private apiClient: ChatApiClient,
   ) {
     this.sessionManager = new SessionManager(config)
@@ -23,11 +25,11 @@ export class ChatCore {
     })
   }
 
-  async sendMessage(sessionId: string, message: string): Promise<void> {
-    let session = this.sessionManager.getSession(sessionId)
-    if (!session) {
-      session = this.sessionManager.createSession(sessionId)
-    }
+  async sendMessage<T extends ChatPayload>(sessionId: string, message: T): Promise<void> {
+    this.currentSessionId = sessionId
+    const session = this.sessionManager.getOrCreateSession(sessionId, (chatId) => {
+      this.stopStream(chatId)
+    })
 
     session.isLoading = true
     session.currentMessage = this.messageHandler.onCreate()
@@ -51,7 +53,10 @@ export class ChatCore {
     }
   }
 
-  private async retry(sessionId: string, message: string): Promise<void> {
+  setApiClientHeaders(headers: Record<string, string>) {
+    this.apiClient.setHeaders(headers)
+  }
+  private async retry<T extends ChatPayload>(sessionId: string, message: T): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, this.config.retryDelay))
 
     this.sessionManager.resetSession(sessionId)
@@ -61,6 +66,7 @@ export class ChatCore {
   stopStream(sessionId: string): void {
     const session = this.sessionManager.getSession(sessionId)
     if (session) {
+      this.messageHandler.onStop(session.currentMessage)
       session.controller.abort()
       this.sessionManager.deleteSession(sessionId)
     }
@@ -71,18 +77,26 @@ export class ChatCore {
     console.log('handleStart')
   }
 
-  private handleToken(token: string): void {
+  private async handleToken(token: string): Promise<void> {
     // 处理token
     const session = this.getCurrentSession()
     if (!session?.currentMessage) return
-
-    const updatedMessage = {
-      ...session.currentMessage,
-      content: session.currentMessage.content + token,
-    }
-    this.messageHandler.onToken(updatedMessage)
+    await this.appendTokenWithDelay(token, session, this.messageHandler.onToken)
   }
-
+  /**
+   * @description 在每个字符后添加延迟
+   */
+  private async appendTokenWithDelay(token: string, session: ChatSession, handler: MessageHandler['onToken']) {
+    const chars = token.split('')
+    for (const char of chars) {
+      session.currentMessage!.content += char
+      await handler(session.currentMessage)
+      await sleep(
+        Math.random() * (this.config.typingDelay.max - this.config.typingDelay.min) + this.config.typingDelay.min,
+        session.controller.signal,
+      )
+    }
+  }
   private async handleToolCall(toolCalls: ToolCall[]): Promise<void> {
     // 处理工具调用
     const session = this.getCurrentSession()
@@ -96,7 +110,7 @@ export class ChatCore {
     this.messageHandler.onToolCall(updatedMessage.toolCalls)
   }
 
-  private handleFinish(fullText: string): void {
+  private async handleFinish(fullText: string): Promise<void> {
     const session = this.getCurrentSession()
     if (!session?.currentMessage) return
 
@@ -106,11 +120,14 @@ export class ChatCore {
       content: fullText,
     }
 
-    this.messageHandler.onComplete(completedMessage)
+    await this.messageHandler.onComplete(completedMessage)
     session.isLoading = false
+    this.sessionManager.deleteSession(session.id) // 移除当前消息
+    this.currentSessionId = undefined // 移除当前会话id
   }
 
   private async handleError(error: Error): Promise<void> {
+    this.logError(`处理错误: ${error.message}`, error)
     const session = this.getCurrentSession()
     if (!session?.currentMessage) return
 
@@ -125,7 +142,13 @@ export class ChatCore {
   }
 
   private getCurrentSession(): ChatSession | undefined {
-    // 获取当前活动会话的逻辑
-    return Array.from(this.sessionManager.sessions.values()).find((session) => session.isLoading)
+    return this.currentSessionId ? this.sessionManager.getSession(this.currentSessionId) : undefined
+  }
+  private logInfo(message: string): void {
+    console.log(`[ChatCore] ${message}`)
+  }
+
+  private logError(message: string, error?: Error): void {
+    console.error(`[ChatCore] ${message}`, error)
   }
 }

@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import SidebarProvider from '@/components/Sidebar/SidebarProvider.vue'
-// https://github.com/vueuse/head
+import { useChatStore } from '@/store'
+
+const chatStore = useChatStore()
+chatStore.init()
+
 useHead({
   title: '博闻智星',
   meta: [

@@ -7,14 +7,18 @@
         <Sidebar />
       </div>
     </div>
-    <main class="flex-1 overflow-auto">
+    <main class="flex-1 h-full">
       <RouterView />
     </main>
+    <SidebarSheet v-if="md" />
   </div>
 </template>
 
 <script setup lang="ts">
 import Sidebar from '@/components/Sidebar/index.vue'
+import SidebarSheet from '@/components/Sidebar/SidebarSheet.vue'
 import type { SidebarProviderContext } from '@/components/Sidebar/SidebarProvider.vue'
+import { useResponsive } from '@/composables/useResponsive'
 const { isCollapsed } = inject<SidebarProviderContext>('sidebar')!
+const { md } = useResponsive()
 </script>

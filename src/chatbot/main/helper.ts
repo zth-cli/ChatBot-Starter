@@ -1,10 +1,9 @@
 import { ChatPluginManifest, PluginType, Meta, PluginSchema, PluginRequestPayload } from '@rzx/chat-plugin-sdk'
-import { ImageMessage, MessageType } from '@/api/chatService'
-import { fileToBase64, isFileOrBlobInstance } from '@/lib'
-import { ImageMimeTypes } from '@/contants/mimeTypes'
-import { ToolCall } from '@/chatbot/llmStreamProcessor'
-import { useToolStore } from '@/store'
+import { ChatMessage, ImageMessage, MessageType, ToolCall } from './types'
+import { AbortError, fileToBase64, isFileOrBlobInstance } from '@/lib'
+import { ImageMimeTypes } from '@/chatbot/contants/mimeTypes'
 import { Md5 } from 'ts-md5'
+
 export const getPluginTitle = (meta?: Meta) => meta?.title
 export const getPluginDesc = (meta?: Meta) => meta?.description
 
@@ -88,43 +87,9 @@ export const parseAvailableTools = (plugins: ChatPluginManifest[]) => {
 /**
  * @description 解析历史消息
  */
-export const parseHistoryMessages = async (messages: IChatMessage[], index?: number) => {
+export const parseHistoryMessages = async (messages: ChatMessage[], index?: number) => {
   const data = index !== undefined ? messages.slice(0, index) : messages
-  const historyMsg = [
-    {
-      content: `
-    你是资源注册助手。当用户明确请求注册资源时，当用户要注册任务或者工作流时跳过，请选择要注册的资源类型（输入对应数字）：
-    1. 数据源注册
-    2. API注册
-    3. UI资源注册
-    
-    引导用户或者根据用户输入，完成表单。
-    完成表单后，请使用表格输出。
-    下面是三者表单的内容：
-
-    === 数据源注册表单 ===
-    请提供以下信息：
-    - **数据源IP**
-    - **端口号**
-    - **数据源名称**
-    - **用户名**
-    - **用户密码**
-
-    === API注册表单 ===
-    请提供以下信息：
-    - **API连接地址**
-    - **API名称**
-    - **API方法(GET/POST/PUT/DELETE等)**
-
-    === UI资源注册表单 ===
-    请提供以下信息：
-    - **UI连接地址**
-    - **UI名称**
-    - **描述信息**
-      `,
-      role: 'system',
-    },
-  ]
+  const historyMsg = []
 
   for await (const item of data) {
     let ele: MessageType
@@ -132,14 +97,6 @@ export const parseHistoryMessages = async (messages: IChatMessage[], index?: num
       // 解析图片消息
       const content = await parseImageMessage(item)
       ele = { content, role: item.role }
-    } else if (item.role === 'tool') {
-      // 解析工具消息
-      ele = {
-        content: item.content,
-        role: item.role,
-        name: item.name,
-        tool_call_id: item['tool_call_id'],
-      }
     } else {
       // 解析文本消息
       ele = { content: item.content, role: item.role }
@@ -152,7 +109,7 @@ export const parseHistoryMessages = async (messages: IChatMessage[], index?: num
 /**
  * @description 解析图片消息
  */
-export const parseImageMessage = async (message: IChatMessage): Promise<ImageMessage[] | undefined> => {
+export const parseImageMessage = async (message: ChatMessage): Promise<ImageMessage[] | undefined> => {
   const data: ImageMessage[] = []
   for await (const item of message!.attachments!) {
     if (ImageMimeTypes.includes(item.type)) {
@@ -192,17 +149,18 @@ export const handleToolCallsResponse = (toolCalls: ToolCall[]) => {
       apiName,
       arguments: '', // 将在后续流中累积
       identifier,
-      type: pluginType || 'markdown',
-    }
-    // 如果apiName是md5哈希值, 则从插件清单中找到对应的api
-    if (apiName?.startsWith(PLUGIN_SCHEMA_API_MD5_PREFIX)) {
-      const md5 = apiName.replace(PLUGIN_SCHEMA_API_MD5_PREFIX, '')
-      const tool = useToolStore().getToolByIdentifier(identifier)
-      const api = tool?.api.find((api) => genMd5(api.name) === md5)
-      if (api) {
-        payload.apiName = api.name
-      }
+      type: pluginType,
     }
   }
   return payload
+}
+export const sleep = (ms: number, signal?: AbortSignal) => {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(resolve, ms)
+    // 如果 signal 被中止，清除定时器并拒绝 Promise
+    signal?.addEventListener('abort', () => {
+      clearTimeout(timer)
+      reject(new AbortError('计时器已被中止'))
+    })
+  })
 }
