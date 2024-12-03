@@ -5,16 +5,9 @@
         <div class="px-2 py-1.5">
           <span class="text-xs text-muted-foreground">{{ group.label }}</span>
         </div>
-        <Button
-          v-for="chat in group.chats"
-          :key="chat.id"
-          variant="ghost"
-          class="w-full justify-start"
-          @click="switchChat(chat)"
-        >
-          <MessageSquareIcon class="mr-2 h-4 w-4" />
-          <span class="truncate">{{ chat.name }}</span>
-        </Button>
+        <ChatHistoryItem v-for="chat in group.chats" :key="chat.id" :item="chat" @click="switchChat(chat)">
+          <ChatHistoryMoreItem @select="(type, $event) => handleMoreAction(type, chat.id, $event)" />
+        </ChatHistoryItem>
       </template>
     </div>
   </div>
@@ -23,13 +16,19 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useChatStore } from '@/store'
-import { Button } from '@/components/ui/button'
-import { MessageSquareIcon } from 'lucide-vue-next'
+
 import { ChatHistory } from '@/chatbot/main/types'
 
 const router = useRouter()
 const chatStore = useChatStore()
 const { chatHistoryList } = storeToRefs(chatStore)
+
+const emit = defineEmits(['more-action'])
+
+const handleMoreAction = (type: string, chatId: string, event: Event) => {
+  event.stopPropagation()
+  emit('more-action', type, chatId)
+}
 
 const switchChat = (chat: ChatHistory) => {
   chatStore.getChatHistoryById(chat.id)
