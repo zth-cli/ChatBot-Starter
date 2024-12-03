@@ -83,6 +83,7 @@ class OpenAIStreamProcessor extends BaseStreamProcessor {
           controller.enqueue(chunk)
         } catch (error) {
           await this.handleError(error)
+          controller.error(error)
         }
       },
     })
@@ -124,6 +125,7 @@ class OllamaStreamProcessor extends BaseStreamProcessor {
           controller.enqueue(chunk)
         } catch (error) {
           await this.handleError(error)
+          controller.error(error)
         }
       },
     })

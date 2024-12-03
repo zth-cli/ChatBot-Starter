@@ -59,11 +59,11 @@
 
 提供核心对话逻辑的无头组件，方便构建自定义界面：
 
-```vue
+```html
 <script setup>
-import { useChat } from '@/chatbot'
+  import { useChat } from '@/chatbot'
 
-const { sendMessage, stopStream } = useChat()
+  const { sendMessage, stopStream } = useChat()
 </script>
 ```
 

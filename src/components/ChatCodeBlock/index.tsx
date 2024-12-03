@@ -19,7 +19,6 @@ export const CodeBlock = defineComponent({
   },
   setup(props) {
     const highlightedCode = ref('')
-    const isDark = ref(false)
     const isExpanded = ref(true)
     const highlightedCodeRef = ref<HTMLElement | null>(null)
     const isLoading = ref(true)
@@ -60,6 +59,12 @@ export const CodeBlock = defineComponent({
     const toggleExpand = () => {
       isExpanded.value = !isExpanded.value
     }
+    watch(
+      () => isDark.value,
+      () => {
+        highlightCode()
+      },
+    )
 
     return () => (
       <>

@@ -2,7 +2,7 @@
   <div class="group flex w-full h-screen" :data-collapsible="isCollapsed ? 'offcanvas' : ''">
     <div class="hidden md:block group">
       <div
-        class="translate-[width] duration-200 ease-linear h-full w-0 md:w-[--sidebar-width] group-data-[collapsible=offcanvas]:w-0 relative bg-gray-50"
+        class="translate-[width] duration-200 ease-linear h-full w-0 md:w-[--sidebar-width] group-data-[collapsible=offcanvas]:w-0 relative bg-primary/5"
       >
         <Sidebar />
       </div>

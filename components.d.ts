@@ -37,6 +37,7 @@ declare module 'vue' {
     BreadcrumbPage: typeof import('./src/components/ui/breadcrumb/BreadcrumbPage.vue')['default']
     BreadcrumbSeparator: typeof import('./src/components/ui/breadcrumb/BreadcrumbSeparator.vue')['default']
     Button: typeof import('./src/components/ui/button/Button.vue')['default']
+    Buttonx: typeof import('./src/components/Buttonx/index.vue')['default']
     Calendar: typeof import('./src/components/ui/calendar/Calendar.vue')['default']
     CalendarCell: typeof import('./src/components/ui/calendar/CalendarCell.vue')['default']
     CalendarCellTrigger: typeof import('./src/components/ui/calendar/CalendarCellTrigger.vue')['default']
@@ -72,6 +73,7 @@ declare module 'vue' {
     ChatHistoryMoreItem: typeof import('./src/components/Sidebar/ChatHistoryMoreItem.vue')['default']
     ChatLoadingDots: typeof import('./src/components/ChatLoadingDots/index.vue')['default']
     ChatMessages: typeof import('./src/components/ChatMessages/index.vue')['default']
+    ChatTextArea: typeof import('./src/components/ChatTextArea/index.vue')['default']
     Checkbox: typeof import('./src/components/ui/checkbox/Checkbox.vue')['default']
     Command: typeof import('./src/components/ui/command/Command.vue')['default']
     CommandDialog: typeof import('./src/components/ui/command/CommandDialog.vue')['default']
@@ -192,5 +194,6 @@ declare module 'vue' {
     TooltipContent: typeof import('./src/components/ui/tooltip/TooltipContent.vue')['default']
     TooltipProvider: typeof import('./src/components/ui/tooltip/TooltipProvider.vue')['default']
     TooltipTrigger: typeof import('./src/components/ui/tooltip/TooltipTrigger.vue')['default']
+    UserNav: typeof import('./src/components/UserNav/index.vue')['default']
   }
 }

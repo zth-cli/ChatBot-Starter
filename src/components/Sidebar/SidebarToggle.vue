@@ -7,9 +7,7 @@ const { toggleSidebar } = inject<SidebarProviderContext>('sidebar')!
 </script>
 
 <template>
-  <Button variant="outline" size="sm" class="md:px-2 md:h-fi" @click="toggleSidebar">
+  <Button variant="outline" size="icon" class="md:px-2 size-9" @click="toggleSidebar">
     <PanelLeft class="size-5" />
   </Button>
 </template>
-
-<style lang="scss" scoped></style>

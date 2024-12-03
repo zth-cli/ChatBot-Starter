@@ -5,8 +5,16 @@
         <div class="px-2 py-1.5">
           <span class="text-xs text-muted-foreground">{{ group.label }}</span>
         </div>
-        <ChatHistoryItem v-for="chat in group.chats" :key="chat.id" :item="chat" @click="switchChat(chat)">
-          <ChatHistoryMoreItem @select="(type, $event) => handleMoreAction(type, chat.id, $event)" />
+        <ChatHistoryItem
+          v-for="chat in group.chats"
+          :key="chat.id"
+          :class="{
+            'bg-white dark:bg-neutral-800': chat.id === currentChatId,
+          }"
+          :item="chat"
+          @click="emit('switch-chat', chat.id)"
+        >
+          <ChatHistoryMoreItem @select="(type) => emit('more-action', type, chat.id)" />
         </ChatHistoryItem>
       </template>
     </div>
@@ -14,26 +22,17 @@
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { useChatStore } from '@/store'
+const props = defineProps<{
+  isCollapsed: boolean
+  chatHistoryList: any[]
+  currentChatId?: string | string[]
+}>()
 
-import { ChatHistory } from '@/chatbot/main/types'
-
-const router = useRouter()
-const chatStore = useChatStore()
-const { chatHistoryList } = storeToRefs(chatStore)
-
-const emit = defineEmits(['more-action'])
-
-const handleMoreAction = (type: string, chatId: string, event: Event) => {
-  event.stopPropagation()
-  emit('more-action', type, chatId)
-}
-
-const switchChat = (chat: ChatHistory) => {
-  chatStore.getChatHistoryById(chat.id)
-  router.push(`/chat/${chat.id}`)
-}
+const emit = defineEmits<{
+  'switch-chat': [id: string]
+  'more-action': [type: string, id: string]
+  'before-go': []
+}>()
 
 const groupedChatHistory = computed(() => {
   const today = new Date()
@@ -61,7 +60,7 @@ const groupedChatHistory = computed(() => {
     },
   }
 
-  chatHistoryList.value.forEach((chat) => {
+  props.chatHistoryList.forEach((chat) => {
     const chatDate = new Date(chat.createTime)
     if (isSameDay(chatDate, today)) {
       groups.today.chats.push(chat)

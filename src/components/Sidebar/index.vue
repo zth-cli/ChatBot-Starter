@@ -24,7 +24,13 @@
       </div>
 
       <!-- 聊天历史列表 -->
-      <ChatHistory />
+      <ChatHistory
+        :is-collapsed="isCollapsed"
+        :chat-history-list="chatHistoryList"
+        :current-chat-id="currentChatId"
+        @more-action="handleMoreAction"
+        @switch-chat="handleSwitchChat"
+      />
 
       <!-- 底部用户信息 -->
       <div class="border-t p-4">
@@ -42,7 +48,8 @@
 
 <script setup lang="ts">
 import { cn } from '@/lib/utils'
-import { inject } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useChatStore } from '@/store'
 import ChatHistory from './ChatHistory.vue'
 import NewChatButton from './NewChatButton.vue'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -50,4 +57,21 @@ import { Bot } from 'lucide-vue-next'
 import type { SidebarProviderContext } from '@/components/Sidebar/SidebarProvider.vue'
 
 const { isCollapsed } = inject<SidebarProviderContext>('sidebar')!
+
+const router = useRouter()
+const chatStore = useChatStore()
+const { chatHistoryList, currentChatId } = storeToRefs(chatStore)
+
+const handleMoreAction = (type: string, id: string) => {
+  if (type === 'delete') {
+    chatStore.deleteChatHistory(id, () => {
+      router.push('/')
+    })
+  }
+}
+
+const handleSwitchChat = (id: string) => {
+  chatStore.getChatHistoryById(id)
+  router.push(`/chat/${id}`)
+}
 </script>

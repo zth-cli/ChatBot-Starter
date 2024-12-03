@@ -11,7 +11,7 @@ const message = ref('')
 
 const { sendMessage } = useChat({ scrollToBottom: () => {} })
 const chatStore = useChatStore()
-const { currentChatId } = storeToRefs(chatStore)
+const { currentChatId, currentChatHistory } = storeToRefs(chatStore)
 const router = useRouter()
 // 开始一个新会话
 const startNewChat = () => {
@@ -32,6 +32,7 @@ const startNewChat = () => {
             <p class="flex items-center justify-center gap-x-3 mb-5">
               <Bot class="size-10" /> + <MessageCircle class="size-10" />
             </p>
+
             <p>使用 vue3 + shadcn-vue + tailwindcss 和人工智能软件开发工具包构建的聊天机器人模板。</p>
             <p>在客户端使用 “useChat” 钩子，以创建无缝的聊天体验。</p>
           </div>

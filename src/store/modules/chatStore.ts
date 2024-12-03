@@ -38,7 +38,7 @@ export const useChatStore = defineStore('chat', () => {
   const getChatHistoryList = async () => {
     try {
       const res = await chatDB.get<ChatHistory[]>(CHAT_KEY)
-      chatHistoryList.value = res || []
+      chatHistoryList.value = res ?? []
       // 页面重载时，根据query.id初始化
       if (route.query.id) {
         getChatHistoryById(route.query.id as string)
@@ -63,17 +63,20 @@ export const useChatStore = defineStore('chat', () => {
   const findChatHistoryById = (id: string) => {
     return chatHistoryList.value.find((item) => item.id === id) || null
   }
-  const createDefaultChatHistory = (): ChatHistory => ({
-    id: crypto.randomUUID(),
-    name: '新对话',
-    createTime: new Date().toISOString(), // 使用ISO格式时间
-    updateTime: new Date().toISOString(),
-    userId: '1',
-    isFavorite: false,
-    isTemp: true,
-    loading: false,
-    children: [],
-  })
+  const createDefaultChatHistory = (): ChatHistory => {
+    const now = new Date().toISOString()
+    return {
+      id: crypto.randomUUID(),
+      name: '新对话',
+      createTime: now,
+      updateTime: now,
+      userId: '1',
+      isFavorite: false,
+      isTemp: true,
+      loading: false,
+      children: [],
+    }
+  }
 
   // 插入一个新的对话，同时设置当前会话
   const insertNewChatHistory = () => {
@@ -111,7 +114,7 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   // 更新当前消息
-  const updateCurrentChatMessage = (message: ChatMessage) => {
+  const updateCurrentChatMessage = (message: Partial<ChatMessage> & { id: string }) => {
     const index = currentChatMessages.value.findIndex((item) => item.id === message.id)
     if (index !== -1) {
       currentChatMessages.value[index] = { ...currentChatMessages.value[index], ...message }
