@@ -26,7 +26,7 @@ const listRef = ref<InstanceType<typeof VList>>()
 
 // 监听消息变化,自动滚动到底部
 watch(
-  () => props.messages.length,
+  () => props.messages[msgLength.value]?.content,
   () => {
     if (listRef.value) {
       nextTick(() => {
@@ -46,7 +46,7 @@ defineExpose({
 
 <template>
   <VList ref="listRef" v-slot="{ item, index }" :data="messages" :style="{ height: '100%' }">
-    <div class="w-full mx-auto max-w-3xl px-4">
+    <div class="w-full mx-auto max-w-3xl px-4 mb-6">
       <ChatItem.User v-if="item?.role === 'user'" :item="item" />
       <ChatItem.AI
         v-else-if="item?.role === 'assistant'"

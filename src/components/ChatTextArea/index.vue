@@ -1,13 +1,17 @@
 <script setup lang="ts">
+import { StopIcon } from './stopIcon'
 defineOptions({ name: 'ChatTextArea' })
 
 import { Box, Paperclip, Send } from 'lucide-vue-next'
 
 const message = defineModel<string>({ required: true })
+const props = defineProps<{
+  loading?: boolean
+}>()
 
-const emit = defineEmits(['send'])
+const emit = defineEmits(['send', 'stop'])
 const textareaRef = ref<HTMLTextAreaElement>()
-// 处理 Enter 发送
+// Enter 发送
 onKeyStroke(
   'Enter',
   (e) => {
@@ -34,11 +38,20 @@ onKeyStroke(
   },
   { target: textareaRef },
 )
+
+const handleSend = () => {
+  if (props.loading) {
+    emit('stop')
+  } else {
+    if (!message.value.trim()) return
+    emit('send')
+  }
+}
 </script>
 
 <template>
   <div class="relative w-full">
-    <div class="w-full flex flex-col rounded-xl border shadow-sm overflow-hidden bg-neutral-50/15">
+    <div class="w-full flex flex-col rounded-xl border shadow overflow-hidden bg-neutral-50/15">
       <textarea
         ref="textareaRef"
         v-model="message"
@@ -52,8 +65,16 @@ onKeyStroke(
         <Button variant="ghost" title="附件" size="icon" class="text-gray-400 hover:text-gray-600">
           <Paperclip class="size-5" />
         </Button>
-        <Button :disabled="!message" variant="ghost" title="发送" size="icon" class="text-gray-400 hover:text-gray-600">
-          <Send class="size-5" />
+        <Button
+          :disabled="!message && !loading"
+          variant="ghost"
+          title="发送"
+          size="icon"
+          class="text-gray-400 hover:text-gray-600"
+          @click="handleSend"
+        >
+          <Send v-if="!loading" class="size-5" />
+          <StopIcon v-else class="size-9" />
         </Button>
       </div>
     </div>

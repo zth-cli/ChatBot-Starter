@@ -9,8 +9,9 @@ import { cn } from '@/lib'
 
 const message = ref('')
 const chatStore = useChatStore()
-const { currentChatMessages } = storeToRefs(chatStore)
-const { sendMessage, stopStream } = useChat({ scrollToBottom: () => chatMessagesRef.value?.scrollToBottom() })
+const { currentChatMessages, currentChatHistory } = storeToRefs(chatStore)
+const isLoading = computed(() => !!currentChatHistory.value?.loading)
+const { sendMessage, stopStream } = useChat()
 
 // 刷新界面时根据chatId获取聊天记录
 const route = useRoute()
@@ -30,7 +31,6 @@ watch(isWorkspace, (value) => {
   }
 })
 
-const chatMessagesRef = ref<InstanceType<typeof ChatMessages>>()
 // 发送消息
 const handleSendMessage = () => {
   if (!message.value) return
@@ -48,10 +48,10 @@ const handleSendMessage = () => {
       <div :class="cn('flex flex-col h-full bg-background w-full')">
         <ChatHeader />
         <div class="flex flex-col min-w-0 gap-6 flex-1 pt-4">
-          <ChatMessages ref="chatMessagesRef" :messages="currentChatMessages" :is-at-bottom="true" />
+          <ChatMessages :messages="currentChatMessages" :is-at-bottom="true" />
         </div>
         <div class="flex items-end mx-auto px-4 bg-background p-4 md:pb-10 gap-2 w-full md:max-w-3xl">
-          <ChatTextArea v-model="message" @send="handleSendMessage" />
+          <ChatTextArea v-model="message" :loading="isLoading" @send="handleSendMessage" @stop="stopStream" />
 
           <!-- <Button @click="handleSendMessage">发送</Button>
           <Button @click="isWorkspace = !isWorkspace">切换工作台模式</Button> -->

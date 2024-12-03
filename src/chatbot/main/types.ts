@@ -170,7 +170,7 @@ export type ChatHook = {
    */
   stopStream: (params?: any) => void
 }
-export type UseChatHookFn = (params: UseChatParams) => ChatHook
+export type UseChatHookFn = (params?: UseChatParams) => ChatHook
 
 export interface UploadFileInfo {
   id: string

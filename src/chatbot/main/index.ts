@@ -63,15 +63,6 @@ export class ChatCore {
     return this.sendMessage(sessionId, message)
   }
 
-  stopStream(sessionId: string): void {
-    const session = this.sessionManager.getSession(sessionId)
-    if (session) {
-      this.messageHandler.onStop(session.currentMessage)
-      session.controller.abort()
-      this.sessionManager.deleteSession(sessionId)
-    }
-  }
-
   private handleStart(): void {
     // 处理开始
     console.log('handleStart')
@@ -81,6 +72,7 @@ export class ChatCore {
     // 处理token
     const session = this.getCurrentSession()
     if (!session?.currentMessage) return
+    session.currentMessage.status = MessageStatus.STREAMING
     await this.appendTokenWithDelay(token, session, this.messageHandler.onToken)
   }
   /**
@@ -119,7 +111,6 @@ export class ChatCore {
       status: MessageStatus.COMPLETE,
       content: fullText,
     }
-
     await this.messageHandler.onComplete(completedMessage)
     session.isLoading = false
     this.sessionManager.deleteSession(session.id) // 移除当前消息
@@ -136,9 +127,21 @@ export class ChatCore {
       status: MessageStatus.ERROR,
     }
 
-    this.messageHandler.onError(errorMessage, error)
+    await this.messageHandler.onError(errorMessage, error)
     session.isLoading = false
     session.lastError = error
+  }
+  async stopStream(sessionId: string): Promise<void> {
+    const session = this.sessionManager.getSession(sessionId)
+    if (session) {
+      const stopMessage = {
+        ...session.currentMessage,
+        status: MessageStatus.STOP,
+      }
+      await this.messageHandler.onStop(stopMessage)
+      session.controller.abort()
+      this.sessionManager.deleteSession(sessionId)
+    }
   }
 
   private getCurrentSession(): ChatSession | undefined {

@@ -9,9 +9,10 @@ defineOptions({ name: 'Index' })
 
 const message = ref('')
 
-const { sendMessage } = useChat({ scrollToBottom: () => {} })
+const { sendMessage } = useChat()
 const chatStore = useChatStore()
 const { currentChatId, currentChatHistory } = storeToRefs(chatStore)
+const isLoading = computed(() => !!currentChatHistory.value?.loading)
 const router = useRouter()
 // 开始一个新会话
 const startNewChat = () => {
@@ -38,8 +39,7 @@ const startNewChat = () => {
           </div>
         </div>
         <div class="flex items-end mx-auto px-4 bg-background pb-4 md:pb-12 gap-2 w-full md:max-w-3xl">
-          <Textarea v-model="message" class="bg-muted rounded-lg resize-none" placeholder="发送消息提问" />
-          <Button @click="startNewChat">发送</Button>
+          <ChatTextArea v-model="message" @send="startNewChat" />
         </div>
       </div>
     </ChatContainer>

@@ -42,9 +42,7 @@ export const AIChatItem = defineComponent({
     const isPlugin = computed(() => props.item?.toolCalls?.length > 0)
     // 当content为空且status为3 ，显示loading
     const isPendding = computed(() => props.item.status === MessageStatus.PENDING)
-    const isLoading = computed(
-      () => props.item.status === MessageStatus.STREAMING || props.item.status === MessageStatus.PENDING,
-    )
+    const isLoading = computed(() => props.item.status === MessageStatus.STREAMING)
     const handleSelect = (item: MoreActionItem) => {
       switch (item.value) {
         case 'copy':

@@ -3,7 +3,7 @@ import { ChatApiClient, ChatPayload } from './main/ChatApiClient'
 import { ChatMessage, MessageStatus, UseChatHookFn } from './main/types'
 import { useChatStore, useToolStore } from '@/store'
 
-export const useChat: UseChatHookFn = ({ scrollToBottom }) => {
+export const useChat: UseChatHookFn = () => {
   const chatStore = useChatStore()
   const toolStore = useToolStore()
   const baseUrl = import.meta.env.DEV ? '/api' : ''
@@ -16,6 +16,7 @@ export const useChat: UseChatHookFn = ({ scrollToBottom }) => {
     },
     {
       onCreate: () => {
+        chatStore.currentChatHistory.loading = true
         const newMessage: ChatMessage = {
           id: crypto.randomUUID(),
           role: 'assistant' as const,
@@ -31,23 +32,24 @@ export const useChat: UseChatHookFn = ({ scrollToBottom }) => {
       },
       onToken: (message) => {
         chatStore.updateCurrentChatMessage(message)
-        scrollToBottom?.()
       },
       onComplete: (message) => {
         chatStore.updateCurrentChatMessage(message)
-        scrollToBottom?.()
+        chatStore.currentChatHistory.loading = false
       },
       onError: (message, error) => {
         chatStore.updateCurrentChatMessage({
           ...message,
           status: MessageStatus.ERROR,
         })
+        chatStore.currentChatHistory.loading = false
       },
       onStop: (message) => {
         chatStore.updateCurrentChatMessage({
           ...message,
           status: MessageStatus.STOP,
         })
+        chatStore.currentChatHistory.loading = false
       },
     },
     new ChatApiClient(`${baseUrl}/llm/skillCenter/plugin/chat/openai/formdata`, '61c36ab3c518418b916a6ffc2190d170'),
@@ -77,10 +79,10 @@ export const useChat: UseChatHookFn = ({ scrollToBottom }) => {
         messages: [{ role: 'user', content: message }],
       })
     },
-    stopStream: () => {
+    stopStream: async () => {
       const chatId = chatStore.currentChatId
       if (chatId) {
-        chatCore.stopStream(chatId)
+        await chatCore.stopStream(chatId)
       }
     },
   }
