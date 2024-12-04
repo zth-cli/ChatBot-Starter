@@ -1,7 +1,7 @@
 import { ChatConfig, MessageHandler, ChatMessage, MessageStatus, ToolCall } from './types'
 import { StreamProcessor } from './StreamProcessor'
+import { ChatApiClient } from './ChatApiClient'
 import { NetworkError } from './ChatError'
-import { ChatApiClient, ChatPayload } from './ChatApiClient'
 import { sleep } from './helper'
 
 export class ChatCore {
@@ -25,7 +25,7 @@ export class ChatCore {
     })
   }
 
-  async sendMessage<T extends ChatPayload>(message: T): Promise<void> {
+  async sendMessage<T extends { messages: any[]; [x: string]: any }>(message: T): Promise<void> {
     this.currentMessage = this.messageHandler.onCreate()
     this.controller = new AbortController()
 
@@ -48,7 +48,7 @@ export class ChatCore {
     }
   }
 
-  private async retry<T extends ChatPayload>(message: T): Promise<void> {
+  private async retry<T extends { messages: any[]; [x: string]: any }>(message: T): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, this.config.retryDelay))
     return this.sendMessage(message)
   }
