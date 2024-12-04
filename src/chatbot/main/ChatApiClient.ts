@@ -42,6 +42,9 @@ export class ChatApiClient {
       throw new NetworkError(`创建聊天流失败: ${error.message}`)
     }
   }
+  setApiClientHeaders(headers: Record<string, string>) {
+    this.headers = headers
+  }
 
   /**
    * 将对象转换为 FormData，对象类型直接 JSON 序列化

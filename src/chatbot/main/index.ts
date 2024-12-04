@@ -1,21 +1,21 @@
-import { ChatConfig, MessageHandler, ChatMessage, MessageStatus, ToolCall, ChatSession } from './types'
-import { SessionManager } from './SessionManager'
+import { ChatConfig, MessageHandler, ChatMessage, MessageStatus, ToolCall } from './types'
 import { StreamProcessor } from './StreamProcessor'
 import { NetworkError } from './ChatError'
 import { ChatApiClient, ChatPayload } from './ChatApiClient'
 import { sleep } from './helper'
 
 export class ChatCore {
-  private sessionManager: SessionManager
+  private currentMessage: ChatMessage | undefined
+  private controller: AbortController
+  private retryCount: number = 0
   private streamProcessor: StreamProcessor
-  private currentSessionId: string | undefined
 
   constructor(
     private config: ChatConfig,
-    private messageHandler: MessageHandler & { onStop: (message: ChatMessage) => void },
+    private messageHandler: MessageHandler,
     private apiClient: ChatApiClient,
   ) {
-    this.sessionManager = new SessionManager(config)
+    this.controller = new AbortController()
     this.streamProcessor = new StreamProcessor({
       onStart: () => this.handleStart(),
       onToken: (token) => this.handleToken(token),
@@ -25,17 +25,12 @@ export class ChatCore {
     })
   }
 
-  async sendMessage<T extends ChatPayload>(sessionId: string, message: T): Promise<void> {
-    this.currentSessionId = sessionId
-    const session = this.sessionManager.getOrCreateSession(sessionId, (chatId) => {
-      this.stopStream(chatId)
-    })
-
-    session.isLoading = true
-    session.currentMessage = this.messageHandler.onCreate()
+  async sendMessage<T extends ChatPayload>(message: T): Promise<void> {
+    this.currentMessage = this.messageHandler.onCreate()
+    this.controller = new AbortController()
 
     try {
-      const response = await this.apiClient.createChatStream(message, session.controller.signal)
+      const response = await this.apiClient.createChatStream(message, this.controller.signal)
 
       if (!response.ok) {
         throw new NetworkError(`HTTP error! status: ${response.status}`)
@@ -46,107 +41,92 @@ export class ChatCore {
       await this.handleError(error)
 
       // 重试逻辑
-      if (error.retryable && this.sessionManager.canRetry(session)) {
-        session.retryCount++
-        await this.retry(sessionId, message)
+      if (error.retryable && this.retryCount < this.config.maxRetries) {
+        this.retryCount++
+        await this.retry(message)
       }
     }
   }
 
-  setApiClientHeaders(headers: Record<string, string>) {
-    this.apiClient.setHeaders(headers)
-  }
-  private async retry<T extends ChatPayload>(sessionId: string, message: T): Promise<void> {
+  private async retry<T extends ChatPayload>(message: T): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, this.config.retryDelay))
-
-    this.sessionManager.resetSession(sessionId)
-    return this.sendMessage(sessionId, message)
+    return this.sendMessage(message)
   }
 
   private handleStart(): void {
-    // 处理开始
-    console.log('handleStart')
+    this.logInfo('开始处理消息')
   }
 
   private async handleToken(token: string): Promise<void> {
-    // 处理token
-    const session = this.getCurrentSession()
-    if (!session?.currentMessage) return
-    session.currentMessage.status = MessageStatus.STREAMING
-    await this.appendTokenWithDelay(token, session, this.messageHandler.onToken)
+    if (!this.currentMessage) return
+    this.currentMessage.status = MessageStatus.STREAMING
+    await this.appendTokenWithDelay(token)
   }
-  /**
-   * @description 在每个字符后添加延迟
-   */
-  private async appendTokenWithDelay(token: string, session: ChatSession, handler: MessageHandler['onToken']) {
+
+  private async appendTokenWithDelay(token: string) {
     const chars = token.split('')
     for (const char of chars) {
-      session.currentMessage!.content += char
-      await handler(session.currentMessage)
+      this.currentMessage!.content += char
+      await this.messageHandler.onToken(this.currentMessage!)
       await sleep(
         Math.random() * (this.config.typingDelay.max - this.config.typingDelay.min) + this.config.typingDelay.min,
-        session.controller.signal,
+        this.controller.signal,
       )
     }
   }
-  private async handleToolCall(toolCalls: ToolCall[]): Promise<void> {
-    // 处理工具调用
-    const session = this.getCurrentSession()
-    if (!session?.currentMessage) return
 
-    const updatedMessage = {
-      ...session.currentMessage,
-      toolCalls: [...(session.currentMessage.toolCalls || []), ...toolCalls],
+  private async handleToolCall(toolCalls: ToolCall[]): Promise<void> {
+    if (!this.currentMessage) return
+
+    this.currentMessage = {
+      ...this.currentMessage,
+      toolCalls: [...(this.currentMessage.toolCalls || []), ...toolCalls],
     }
 
-    this.messageHandler.onToolCall(updatedMessage.toolCalls)
+    this.messageHandler.onToolCall(this.currentMessage.toolCalls)
   }
 
   private async handleFinish(fullText: string): Promise<void> {
-    const session = this.getCurrentSession()
-    if (!session?.currentMessage) return
+    if (!this.currentMessage) return
 
     const completedMessage = {
-      ...session.currentMessage,
+      ...this.currentMessage,
       status: MessageStatus.COMPLETE,
       content: fullText,
     }
     await this.messageHandler.onComplete(completedMessage)
-    session.isLoading = false
-    this.sessionManager.deleteSession(session.id) // 移除当前消息
-    this.currentSessionId = undefined // 移除当前会话id
+    this.reset()
   }
 
   private async handleError(error: Error): Promise<void> {
     this.logError(`处理错误: ${error.message}`, error)
-    const session = this.getCurrentSession()
-    if (!session?.currentMessage) return
+    if (!this.currentMessage) return
 
     const errorMessage = {
-      ...session.currentMessage,
+      ...this.currentMessage,
       status: MessageStatus.ERROR,
     }
 
     await this.messageHandler.onError(errorMessage, error)
-    session.isLoading = false
-    session.lastError = error
   }
-  async stopStream(sessionId: string): Promise<void> {
-    const session = this.sessionManager.getSession(sessionId)
-    if (session) {
+
+  async stopStream(): Promise<void> {
+    if (this.currentMessage) {
       const stopMessage = {
-        ...session.currentMessage,
+        ...this.currentMessage,
         status: MessageStatus.STOP,
       }
       await this.messageHandler.onStop(stopMessage)
-      session.controller.abort()
-      this.sessionManager.deleteSession(sessionId)
+      this.controller.abort()
+      this.reset()
     }
   }
 
-  private getCurrentSession(): ChatSession | undefined {
-    return this.currentSessionId ? this.sessionManager.getSession(this.currentSessionId) : undefined
+  private reset(): void {
+    this.currentMessage = undefined
+    this.retryCount = 0
   }
+
   private logInfo(message: string): void {
     console.log(`[ChatCore] ${message}`)
   }

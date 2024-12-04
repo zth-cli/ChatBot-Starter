@@ -50,7 +50,7 @@ const handleSendMessage = () => {
         <div class="flex flex-col min-w-0 gap-6 flex-1 pt-4">
           <ChatMessages :messages="currentChatMessages" :is-at-bottom="true" />
         </div>
-        <div class="flex items-end mx-auto px-4 bg-background p-4 md:pb-10 gap-2 w-full md:max-w-3xl">
+        <div class="flex items-end mx-auto px-4 lg:px-0 bg-background p-4 md:pb-10 gap-2 w-full md:max-w-3xl">
           <ChatTextArea v-model="message" :loading="isLoading" @send="handleSendMessage" @stop="stopStream" />
 
           <!-- <Button @click="handleSendMessage">发送</Button>

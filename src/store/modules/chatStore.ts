@@ -113,6 +113,13 @@ export const useChatStore = defineStore('chat', () => {
     cb?.()
   }
 
+  // 根据会话ID,更新会话状态
+  const updateChatHistoryStatusById = (id: string, status: boolean) => {
+    const index = chatHistoryList.value.findIndex((item) => item.id === id)
+    if (index !== -1) {
+      chatHistoryList.value[index].loading = status
+    }
+  }
   // 更新当前消息
   const updateCurrentChatMessage = (message: Partial<ChatMessage> & { id: string }) => {
     const index = currentChatMessages.value.findIndex((item) => item.id === message.id)
@@ -140,9 +147,9 @@ export const useChatStore = defineStore('chat', () => {
     saveChatHistory(JSON.parse(JSON.stringify(list)))
   }, 1000)
   watch(
-    () => currentChatHistory.value,
-    () => {
-      debouncedSave(chatHistoryList.value)
+    () => chatHistoryList.value,
+    (newVal) => {
+      debouncedSave(JSON.parse(JSON.stringify(newVal)))
     },
     { deep: true },
   )
@@ -163,5 +170,6 @@ export const useChatStore = defineStore('chat', () => {
     removeChatMessageById,
     findChatHistoryById,
     updateCurrentChatMessage,
+    updateChatHistoryStatusById,
   }
 })

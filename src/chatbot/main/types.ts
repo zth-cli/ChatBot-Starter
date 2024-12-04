@@ -117,11 +117,11 @@ export interface MessageHandler {
   onToolCall?: (toolCalls: PluginRequestPayload[]) => void
   onToken: (message: ChatMessage) => void
   onComplete: (message: ChatMessage) => void
+  onStop: (message: ChatMessage) => void
   onError: (message: ChatMessage, error: Error) => void
 }
 
 export interface ChatConfig {
-  maxConcurrentChats: number
   maxRetries: number
   retryDelay: number
   typingDelay: {

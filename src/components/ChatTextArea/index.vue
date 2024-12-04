@@ -39,6 +39,12 @@ onKeyStroke(
   { target: textareaRef },
 )
 
+onMounted(() => {
+  if (textareaRef.value) {
+    textareaRef.value.focus()
+  }
+})
+
 const handleSend = () => {
   if (props.loading) {
     emit('stop')
@@ -55,6 +61,7 @@ const handleSend = () => {
       <textarea
         ref="textareaRef"
         v-model="message"
+        autofocus
         class="w-full max-h-[160px] min-h-[40px] p-4 border-0 resize-none outline-none bg-transparent placeholder:text-gray-300 text-sm overflow-y-auto"
         placeholder="输入问题"
       />

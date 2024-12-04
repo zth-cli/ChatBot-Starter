@@ -55,12 +55,13 @@ export const AIChatItem = defineComponent({
       }
     }
     return () => (
-      <div class='w-full flex flex-col items-start group gap-2'>
+      <div class='w-full flex flex-col items-start group/ai gap-2'>
         {props.render?.()}
         {isPlugin.value && <p>插件</p>}
-        {props.item.content && (
+        {props.item.content ? (
           <RenderMarkdown class='w-full' data={props.item.content} loading={isLoading.value} id={props.item.id} />
-          // <div>{props.item.content}</div>
+        ) : (
+          <span class='text-sm text-black/50 dark:text-foreground'>这里什么都没有</span>
         )}
         {isPendding.value && props.loading && h(props.loading)}
         {/* 操作 */}
@@ -68,7 +69,7 @@ export const AIChatItem = defineComponent({
           v-show={!isLoading.value}
           class={cn(
             'text-xs text-black/50 dark:text-foreground',
-            !props.showActionAlways ? 'opacity-0 group-hover:opacity-100' : 'opacity-100',
+            !props.showActionAlways ? 'opacity-0 group-hover/ai:opacity-100' : 'opacity-100',
           )}>
           <div class='rounded flex gap-4 items-center cursor-pointer mt-2'>
             {props.needRefresh && <Refresh item={props.item} onClick={() => emit('refresh')} />}
