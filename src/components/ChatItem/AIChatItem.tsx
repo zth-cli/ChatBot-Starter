@@ -61,7 +61,7 @@ export const AIChatItem = defineComponent({
         {props.item.content ? (
           <RenderMarkdown class='w-full' data={props.item.content} loading={isLoading.value} id={props.item.id} />
         ) : (
-          <span class='text-sm text-black/50 dark:text-foreground'>这里什么都没有</span>
+          <span class='text-sm text-black/50 dark:text-foreground'></span>
         )}
         {isPendding.value && props.loading && h(props.loading)}
         {/* 操作 */}

@@ -1,22 +1,26 @@
 <template>
   <div class="flex-1 overflow-auto py-2">
     <div class="space-y-2 px-2">
-      <template v-for="group in groupedChatHistory" :key="group.label">
-        <div class="px-2 py-1.5">
-          <span class="text-xs text-muted-foreground">{{ group.label }}</span>
-        </div>
-        <ChatHistoryItem
-          v-for="chat in group.chats"
-          :key="chat.id"
-          :class="{
-            'bg-white dark:bg-neutral-800': chat.id === currentChatId,
-          }"
-          :item="chat"
-          @click="emit('switch-chat', chat.id)"
-        >
-          <ChatHistoryMoreItem @select="(type) => emit('more-action', type, chat.id)" />
-        </ChatHistoryItem>
+      <template v-if="groupedChatHistory.length > 0">
+        <template v-for="group in groupedChatHistory" :key="group.label">
+          <div class="px-2 py-1.5">
+            <span class="text-xs text-muted-foreground">{{ group.label }}</span>
+          </div>
+
+          <ChatHistoryItem
+            v-for="chat in group.chats"
+            :key="chat.id"
+            :class="{
+              'bg-white dark:bg-neutral-800': chat.id === currentChatId,
+            }"
+            :item="chat"
+            @click="emit('switch-chat', chat.id)"
+          >
+            <ChatHistoryMoreItem @select="(type) => emit('more-action', type, chat.id)" />
+          </ChatHistoryItem>
+        </template>
       </template>
+      <div v-else class="text-xs text-gray-400 pl-3 pt-4">您的会话记录会出现在这里</div>
     </div>
   </div>
 </template>

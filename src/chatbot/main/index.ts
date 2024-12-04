@@ -47,7 +47,10 @@ export class ChatCore {
       }
     }
   }
-
+  // 方法设置当前消息
+  public setCurrentMessage(message: ChatMessage): void {
+    this.currentMessage = message
+  }
   private async retry<T extends { messages: any[]; [x: string]: any }>(message: T): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, this.config.retryDelay))
     return this.sendMessage(message)

@@ -49,6 +49,11 @@ export const useChat: UseChatHookFn = () => {
       chatStore.updateCurrentChatMessage(message)
       chatStore.updateChatHistoryStatusById(chatId, false)
       sessionManager.cleanupSession(chatId)
+      /**
+       * 1. 可以调用工具，如果有
+       * 2. 可以让模型根据返回内容生成推荐问题
+       * 3. 可以让模型根据返回内容生成一个对话标题
+       */
     },
     onError: (message, error) => {
       chatStore.updateCurrentChatMessage({
