@@ -151,6 +151,22 @@ export const handleToolCallsResponse = (toolCalls: ToolCall[]) => {
       identifier,
       type: pluginType,
     }
+    // 如果apiName是md5哈希值, 则从插件清单中找到对应的api
+    // if (apiName?.startsWith(PLUGIN_SCHEMA_API_MD5_PREFIX)) {
+    //   const md5 = apiName.replace(PLUGIN_SCHEMA_API_MD5_PREFIX, '')
+    //   const tool = useToolStore().getToolByIdentifier(identifier)
+    //   const api = tool?.api.find((api) => genMd5(api.name) === md5)
+    //   if (api) {
+    //     payload.apiName = api.name
+    //   }
+    // }
+  }
+
+  // 然后循环toolCalls，将arguments累加
+  for (const tool of toolCalls) {
+    if (tool.function?.arguments) {
+      payload!.arguments += tool.function.arguments
+    }
   }
   return payload
 }

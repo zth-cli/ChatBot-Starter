@@ -1,5 +1,3 @@
-import { PluginRequestPayload } from '@rzx/chat-plugin-sdk'
-
 export type Role = 'user' | 'assistant' | 'system' | 'tool'
 
 /**
@@ -94,6 +92,13 @@ export interface ToolResult {
   result: any
 }
 
+export type PluginRequestPayload = {
+  id?: string
+  apiName?: string
+  arguments: string
+  identifier?: string
+  type?: string
+}
 export interface ChatSession {
   id: string
   controller: AbortController
@@ -114,7 +119,7 @@ export interface StreamProcessorHandlers {
 
 export interface MessageHandler {
   onCreate: () => ChatMessage
-  onToolCall?: (toolCalls: PluginRequestPayload[]) => void
+  onToolCall?: (toolCalls: ToolCall[]) => void
   onToken: (message: ChatMessage) => void
   onComplete: (message: ChatMessage) => void
   onStop: (message: ChatMessage) => void
@@ -184,3 +189,22 @@ export interface UploadFileInfo {
   type?: string | null
   fullPath?: string | null
 }
+export type BuiltinType =
+  | 'markdown'
+  | 'image'
+  | 'table'
+  | 'video'
+  | 'audio'
+  | 'file'
+  | 'sql'
+  | 'link'
+  | 'page'
+  | 'action'
+  | 'knowledge'
+  | 'search-engine'
+  | 'article'
+  | 'bar-chart'
+  | 'line-chart'
+  | 'pie-chart'
+  | 'area-chart'
+export type PluginType = 'standalone' | BuiltinType

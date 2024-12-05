@@ -13,7 +13,15 @@ abstract class BaseStreamProcessor {
   constructor(protected handlers: StreamProcessorHandlers) {}
 
   abstract createTransformStream(): TransformStream<string, string>
-
+  /**
+   * 重置处理器状态
+   */
+  public reset() {
+    this.fullText = ''
+    this.currentToolCalls = []
+    this.buffer = ''
+    this.isFinished = false
+  }
   protected async handleStart() {
     await this.handlers.onStart?.()
   }
@@ -147,6 +155,7 @@ export class StreamProcessor {
   }
 
   async processStream(response: Response): Promise<void> {
+    this.processor.reset()
     if (!response.body) {
       throw new StreamError('Response body is null')
     }
