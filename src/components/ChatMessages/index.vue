@@ -11,7 +11,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  refresh: [params: { index: number }]
+  regenerateMessage: [params: { index: number }]
   'click-suggest': [item: string]
 }>()
 
@@ -54,7 +54,7 @@ defineExpose({
         :loading="ChatLoadingDots"
         :need-refresh="isLastMessageAssistant && msgLength === index"
         :show-action-always="isLastMessageAssistant && msgLength === index"
-        @refresh="emit('refresh', { index })"
+        @regenerate-message="emit('regenerateMessage', { index })"
         @click-suggest="emit('click-suggest', $event)"
       />
       <div v-if="index === msgLength" class="shrink-0 min-w-[24px] min-h-[24px]"></div>

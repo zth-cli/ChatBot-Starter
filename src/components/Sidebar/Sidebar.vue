@@ -33,7 +33,7 @@
       />
 
       <!-- 底部用户信息 -->
-      <div class="border-t p-4">
+      <!-- <div class="border-t p-4">
         <div class="flex items-center gap-2">
           <Avatar class="h-8 w-8">
             <AvatarImage src="https://github.com/shadcn.png" />
@@ -41,7 +41,7 @@
           </Avatar>
           <span v-show="!isCollapsed" class="text-sm">770304867@qq.com</span>
         </div>
-      </div>
+      </div> -->
     </div>
   </aside>
 </template>

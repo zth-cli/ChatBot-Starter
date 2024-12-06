@@ -36,12 +36,12 @@ export const AIChatItem = defineComponent({
       default: false,
     },
   },
-  emits: ['refresh', 'click-suggest'],
+  emits: ['regenerate-message', 'click-suggest'],
   setup(props, { emit }) {
     // 是否是插件类型
-    const isPlugin = computed(() => props.item?.toolCalls?.length > 0)
+    const isPlugin = computed(() => Boolean(props.item?.toolCalls?.type))
     // 当content为空且status为3 ，显示loading
-    const isPendding = computed(() => props.item.status === MessageStatus.PENDING)
+    const isPending = computed(() => props.item.status === MessageStatus.PENDING)
     const isLoading = computed(() => props.item.status === MessageStatus.STREAMING)
     const handleSelect = (item: MoreActionItem) => {
       switch (item.value) {
@@ -54,6 +54,23 @@ export const AIChatItem = defineComponent({
           break
       }
     }
+    const renderActions = () => (
+      <div
+        v-show={!isLoading.value}
+        class={cn(
+          'text-xs text-black/50 dark:text-foreground',
+          !props.showActionAlways ? 'opacity-0 group-hover:opacity-100' : 'opacity-100',
+        )}>
+        <div class='rounded flex gap-4 items-center cursor-pointer mt-2'>
+          {props.needRefresh && <Refresh item={props.item} onClick={() => emit('regenerate-message')} />}
+          <CopyX id={props.item.id} />
+          <MoreActions item={props.item} onSelect={handleSelect} />
+          <Separator orientation='vertical' class='h-3' />
+          <ThumbsUpOrDown message={props.item} />
+        </div>
+      </div>
+    )
+
     return () => (
       <div class='w-full flex flex-col items-start group/ai gap-2'>
         {props.render?.()}
@@ -63,26 +80,14 @@ export const AIChatItem = defineComponent({
         ) : (
           <span class='text-sm text-black/50 dark:text-foreground'></span>
         )}
-        {isPendding.value && props.loading && h(props.loading)}
+        {isPending.value && props.loading && h(props.loading)}
         {/* 操作 */}
-        <div
-          v-show={!isLoading.value}
-          class={cn(
-            'text-xs text-black/50 dark:text-foreground',
-            !props.showActionAlways ? 'opacity-0 group-hover/ai:opacity-100' : 'opacity-100',
-          )}>
-          <div class='rounded flex gap-4 items-center cursor-pointer mt-2'>
-            {props.needRefresh && <Refresh item={props.item} onClick={() => emit('refresh')} />}
-            <CopyX id={props.item.id} />
-            <MoreActions item={props.item} onSelect={(item: MoreActionItem) => handleSelect(item)} />
-            <Separator orientation='vertical' class='h-3' />
-            <ThumbsUpOrDown message={props.item} />
-          </div>
-        </div>
+        {renderActions()}
         {/* 推荐问题 */}
         {props.showSuggest && (
           <SuggestMessage
-            list={props.item.suggestMessage}
+            list={props.item.suggestMessage?.data}
+            loading={props.item.suggestMessage?.loading ? props.loading : undefined}
             onClickSuggest={(item: string) => emit('click-suggest', item)}
           />
         )}

@@ -105,7 +105,35 @@ export const useChat: UseChatHookFn = () => {
         messages: [{ role: 'user', content: message }],
       })
     },
+    regenerateMessage: async (index: number) => {
+      const chatId = chatStore.currentChatId
+      if (!chatId) return
 
+      const messages = chatStore.currentChatMessages
+      // 检查索引是否有效
+      if (index < 0 || index >= messages.length) return
+
+      // 获取指定索引位置的消息和它的前一条消息
+      const targetMessage = messages[index]
+      const previousMessage = index > 0 ? messages[index - 1] : null
+
+      // 确保目标消息是助手消息，且前一条是用户消息
+      if (targetMessage.role === 'assistant' && previousMessage?.role === 'user') {
+        // 删除targetMessage
+        messages.splice(index, 1)
+
+        // 重新发送用户消息
+        const userMessage = previousMessage.content
+        const chatCore = await sessionManager.getSession(chatId)
+        apiClient.setApiClientHeaders({
+          ChatToken: '27ecabac-764e-4132-b4d2-fa50b7ec1b65',
+        })
+        await chatCore.sendMessage<ChatPayload>({
+          chatFlowId: import.meta.env.VITE_CHAT_FLOW_ID,
+          messages: [{ role: 'user', content: userMessage }],
+        })
+      }
+    },
     stopStream: async () => {
       const chatId = chatStore.currentChatId
       if (chatId) {

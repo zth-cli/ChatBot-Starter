@@ -4,7 +4,7 @@
       cn(
         buttonVariants({ variant: 'ghost' }),
         'justify-start rounded-xl border-none cursor-pointer',
-        '!h-8 hover:bg-gray-200/60 dark:hover:bg-neutral-800',
+        '!h-8 hover:bg-gray-200/60',
         'group text-gray-500 hover:text-gray-500',
         'flex items-center',
       ),

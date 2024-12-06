@@ -63,7 +63,10 @@ export interface ChatMessage {
   /**
    * @description: 推荐问题
    */
-  suggestMessage?: string[]
+  suggestMessage?: {
+    data: string[]
+    loading: boolean
+  }
   /**
    * @description: 点赞点踩状态 0: 未点赞未点踩 1: 已点赞 -1: 已点踩
    */
@@ -119,7 +122,7 @@ export interface StreamProcessorHandlers {
 
 export interface MessageHandler {
   onCreate: () => ChatMessage
-  onToolCall?: (toolCalls: ToolCall[]) => void
+  onToolCall?: (message: ChatMessage, toolCalls: ToolCall[]) => void
   onToken: (message: ChatMessage) => void
   onComplete: (message: ChatMessage) => void
   onStop: (message: ChatMessage) => void

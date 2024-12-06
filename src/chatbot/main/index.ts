@@ -25,8 +25,13 @@ export class ChatCore {
     })
   }
 
-  async sendMessage<T extends { messages: any[]; [x: string]: any }>(message: T): Promise<void> {
-    this.currentMessage = this.messageHandler.onCreate()
+  async sendMessage<T extends { messages: any[]; [x: string]: any }>(
+    message: T,
+    isRetry: boolean = false,
+  ): Promise<void> {
+    if (!isRetry) {
+      this.currentMessage = this.messageHandler.onCreate()
+    }
     this.controller = new AbortController()
 
     try {
@@ -53,7 +58,7 @@ export class ChatCore {
   }
   private async retry<T extends { messages: any[]; [x: string]: any }>(message: T): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, this.config.retryDelay))
-    return this.sendMessage(message)
+    return this.sendMessage(message, true)
   }
 
   private handleStart(): void {
@@ -83,10 +88,10 @@ export class ChatCore {
 
     this.currentMessage = {
       ...this.currentMessage,
-      toolCalls: [...(this.currentMessage.toolCalls || []), ...toolCalls],
+      toolCalls: [...toolCalls],
     }
 
-    this.messageHandler.onToolCall(this.currentMessage.toolCalls)
+    this.messageHandler?.onToolCall?.(this.currentMessage, toolCalls)
   }
 
   private async handleFinish(fullText: string): Promise<void> {

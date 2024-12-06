@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Sidebar from './index.vue'
+import Sidebar from './Sidebar.vue'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import type { SidebarProviderContext } from '@/components/Sidebar/SidebarProvider.vue'
 

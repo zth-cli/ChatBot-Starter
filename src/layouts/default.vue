@@ -15,9 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import Sidebar from '@/components/Sidebar/index.vue'
-import SidebarSheet from '@/components/Sidebar/SidebarSheet.vue'
-import type { SidebarProviderContext } from '@/components/Sidebar/SidebarProvider.vue'
+import { Sidebar, SidebarSheet, type SidebarProviderContext } from '@/components/Sidebar'
 import { useResponsive } from '@/composables/useResponsive'
 const { isCollapsed } = inject<SidebarProviderContext>('sidebar')!
 const { md } = useResponsive()

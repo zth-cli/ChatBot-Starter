@@ -91,4 +91,31 @@
       opacity: 0;
     }
   }
+  .katex {
+    // 确保公式正常显示
+    display: inline-block;
+    text-align: left;
+
+    svg {
+      // 修复 SVG 尺寸问题
+      max-width: 100%;
+      height: auto;
+
+      // 确保 SVG 与文本对齐
+      vertical-align: middle;
+
+      // 修复颜色以适应深色/浅色模式
+      path {
+        fill: currentColor;
+      }
+    }
+
+    // 确保公式容器不会溢出
+    .katex-display {
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 1em 0;
+      margin: 0.5em 0;
+    }
+  }
 }

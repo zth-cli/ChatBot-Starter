@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { StopIcon } from './stopIcon'
+import { StopIcon } from './StopIcon'
 defineOptions({ name: 'ChatTextArea' })
 
 import { Box, Paperclip, Send } from 'lucide-vue-next'
@@ -57,7 +57,7 @@ const handleSend = () => {
 
 <template>
   <div class="relative w-full">
-    <div class="w-full flex flex-col rounded-xl border shadow overflow-hidden bg-neutral-50/15">
+    <div class="w-full flex flex-col rounded-xl border shadow-sm overflow-hidden bg-neutral-50">
       <textarea
         ref="textareaRef"
         v-model="message"

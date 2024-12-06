@@ -11,7 +11,7 @@
             v-for="chat in group.chats"
             :key="chat.id"
             :class="{
-              'bg-white dark:bg-neutral-800': chat.id === currentChatId,
+              'bg-primary/10': chat.id === currentChatId,
             }"
             :item="chat"
             @click="emit('switch-chat', chat.id)"
