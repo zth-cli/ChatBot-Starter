@@ -25,7 +25,7 @@ const isLastMessageAssistant = computed(() => {
 
 // 滚动相关逻辑
 const listRef = ref<InstanceType<typeof VList>>()
-const isAtTop = ref(false)
+const isAtBottom = ref(false)
 
 // 监听消息变化,自动滚动到底部
 watch(
@@ -47,11 +47,12 @@ defineExpose({
 })
 
 // 添加滚动处理函数
-const handleScroll = (scrollTop: number) => {
-  if (scrollTop < 50 && !isAtTop.value) {
-    isAtTop.value = true
-  } else if (scrollTop >= 50) {
-    isAtTop.value = false
+const handleScroll = () => {
+  const { scrollOffset, viewportSize, scrollSize } = listRef.value
+  if (scrollOffset + viewportSize >= scrollSize) {
+    isAtBottom.value = true
+  } else {
+    isAtBottom.value = false
   }
 }
 </script>
@@ -73,7 +74,7 @@ const handleScroll = (scrollTop: number) => {
         <div v-if="index === msgLength" class="shrink-0 min-w-[24px] min-h-[24px]"></div>
       </div>
     </VList>
-    <FloatButton v-show="!isAtTop" @click="listRef?.scrollToIndex(0)" />
+    <FloatButton v-show="!isAtBottom" @click="listRef?.scrollToIndex(messages.length - 1, { align: 'end' })" />
   </div>
 </template>
 
