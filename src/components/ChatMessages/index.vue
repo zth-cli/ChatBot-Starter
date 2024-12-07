@@ -2,6 +2,8 @@
 import ChatLoadingDots from '@/components/ChatLoadingDots/index.vue'
 import { ChatMessage } from '@/chatbot/main/types'
 import ChatItem from '@/components/ChatItem'
+import { FloatButton } from './FloatButton'
+
 import { VList } from 'virtua/vue'
 
 defineOptions({ name: 'ChatMessages' })
@@ -23,6 +25,7 @@ const isLastMessageAssistant = computed(() => {
 
 // 滚动相关逻辑
 const listRef = ref<InstanceType<typeof VList>>()
+const isAtTop = ref(false)
 
 // 监听消息变化,自动滚动到底部
 watch(
@@ -42,24 +45,36 @@ defineExpose({
     listRef.value?.scrollToIndex(props.messages.length - 1, { align: 'end' })
   },
 })
+
+// 添加滚动处理函数
+const handleScroll = (scrollTop: number) => {
+  if (scrollTop < 50 && !isAtTop.value) {
+    isAtTop.value = true
+  } else if (scrollTop >= 50) {
+    isAtTop.value = false
+  }
+}
 </script>
 
 <template>
-  <VList ref="listRef" v-slot="{ item, index }" :data="messages" :style="{ height: '100%' }">
-    <div class="w-full mx-auto max-w-3xl px-4 mb-6">
-      <ChatItem.User v-if="item?.role === 'user'" :item="item" />
-      <ChatItem.AI
-        v-else-if="item?.role === 'assistant'"
-        :item="item"
-        :loading="ChatLoadingDots"
-        :need-refresh="isLastMessageAssistant && msgLength === index"
-        :show-action-always="isLastMessageAssistant && msgLength === index"
-        @regenerate-message="emit('regenerateMessage', { index })"
-        @click-suggest="emit('click-suggest', $event)"
-      />
-      <div v-if="index === msgLength" class="shrink-0 min-w-[24px] min-h-[24px]"></div>
-    </div>
-  </VList>
+  <div class="h-full relative">
+    <VList ref="listRef" v-slot="{ item, index }" :data="messages" class="h-full" @scroll="handleScroll">
+      <div class="w-full mx-auto max-w-3xl px-4 mb-6">
+        <ChatItem.User v-if="item?.role === 'user'" :item="item" />
+        <ChatItem.AI
+          v-else-if="item?.role === 'assistant'"
+          :item="item"
+          :loading="ChatLoadingDots"
+          :need-refresh="isLastMessageAssistant && msgLength === index"
+          :show-action-always="isLastMessageAssistant && msgLength === index"
+          @regenerate-message="emit('regenerateMessage', { index })"
+          @click-suggest="emit('click-suggest', $event)"
+        />
+        <div v-if="index === msgLength" class="shrink-0 min-w-[24px] min-h-[24px]"></div>
+      </div>
+    </VList>
+    <FloatButton v-show="!isAtTop" @click="listRef?.scrollToIndex(0)" />
+  </div>
 </template>
 
 <style lang="scss" scoped></style>

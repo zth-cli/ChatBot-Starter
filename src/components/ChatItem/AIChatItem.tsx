@@ -59,7 +59,7 @@ export const AIChatItem = defineComponent({
         v-show={!isLoading.value}
         class={cn(
           'text-xs text-black/50 dark:text-foreground',
-          !props.showActionAlways ? 'opacity-0 group-hover:opacity-100' : 'opacity-100',
+          !props.showActionAlways ? 'opacity-0 group-hover/ai:opacity-100' : 'opacity-100',
         )}>
         <div class='rounded flex gap-4 items-center cursor-pointer mt-2'>
           {props.needRefresh && <Refresh item={props.item} onClick={() => emit('regenerate-message')} />}
