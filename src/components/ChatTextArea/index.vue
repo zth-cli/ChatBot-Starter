@@ -57,7 +57,9 @@ const handleSend = () => {
 
 <template>
   <div class="relative w-full">
-    <div class="w-full flex flex-col rounded-xl border shadow-sm overflow-hidden bg-neutral-50">
+    <div
+      class="w-full flex flex-col rounded-xl border shadow-sm overflow-hidden bg-neutral-50 dark:bg-primary-foreground"
+    >
       <textarea
         ref="textareaRef"
         v-model="message"

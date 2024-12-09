@@ -26,6 +26,7 @@ export const UserChatItem = defineComponent({
                 'bg-primary text-primary-foreground',
                 'break-words whitespace-pre-wrap',
                 'max-w-[300px] md:max-w-[450px]',
+                'text-white/90',
               )}>
               {props.item.content}
             </div>

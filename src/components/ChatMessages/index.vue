@@ -9,7 +9,6 @@ import { VList } from 'virtua/vue'
 defineOptions({ name: 'ChatMessages' })
 const props = defineProps<{
   messages: ChatMessage[]
-  isAtBottom: boolean
 }>()
 
 const emit = defineEmits<{
