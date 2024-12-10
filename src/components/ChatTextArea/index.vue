@@ -9,7 +9,7 @@ const props = defineProps<{
   loading?: boolean
 }>()
 
-const emit = defineEmits(['send', 'stop'])
+const emit = defineEmits(['send', 'stop', 'workspace'])
 const textareaRef = ref<HTMLTextAreaElement>()
 // Enter 发送
 onKeyStroke(
@@ -68,7 +68,13 @@ const handleSend = () => {
         placeholder="输入问题"
       />
       <div class="flex items-center gap-1 justify-end pr-2 pb-2">
-        <Button variant="ghost" title="工作台" size="icon" class="text-gray-400 hover:text-gray-600">
+        <Button
+          variant="ghost"
+          title="工作台"
+          size="icon"
+          class="text-gray-400 hover:text-gray-600"
+          @click="emit('workspace', true)"
+        >
           <Box class="size-5" />
         </Button>
         <Button variant="ghost" title="附件" size="icon" class="text-gray-400 hover:text-gray-600">

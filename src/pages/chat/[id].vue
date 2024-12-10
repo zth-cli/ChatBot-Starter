@@ -54,7 +54,13 @@ const handleSendMessage = () => {
           />
         </div>
         <div class="flex items-end mx-auto px-4 lg:px-0 bg-background p-4 md:pb-10 gap-2 w-full md:max-w-3xl">
-          <ChatTextArea v-model="message" :loading="isLoading" @send="handleSendMessage" @stop="stopStream" />
+          <ChatTextArea
+            v-model="message"
+            :loading="isLoading"
+            @send="handleSendMessage"
+            @stop="stopStream"
+            @workspace="isWorkspace = true"
+          />
 
           <!-- <Button @click="handleSendMessage">发送</Button>
           <Button @click="isWorkspace = !isWorkspace">切换工作台模式</Button> -->
