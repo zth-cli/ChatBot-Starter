@@ -21,10 +21,12 @@ const createMarkdownInstance = () => {
     },
   })
 
-  // 优化 fence 渲染规则
-  md.renderer.rules.fence = (tokens, idx) => {
+  md.renderer.rules.fence = (tokens, idx, options, env, self) => {
     const token = tokens[idx]
-    return `<div class="vue-code-block" data-code="${encodeURIComponent(token.content)}" data-lang="${token.info.trim()}"></div>`
+    const code = token.content.trim()
+    const language = token.info.trim()
+
+    return `<CodeBlock-${language}-${encodeURIComponent(code)}>`
   }
 
   return md

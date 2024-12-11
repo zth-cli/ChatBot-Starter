@@ -40,10 +40,6 @@ export const CodeBlock = defineComponent({
             theme,
           })
         }
-
-        if (highlightedCodeRef.value) {
-          highlightedCodeRef.value.innerHTML = highlightedCode.value
-        }
       } catch (err) {
         console.error('Failed to highlight:', err)
         highlightedCode.value = props.code
@@ -52,9 +48,15 @@ export const CodeBlock = defineComponent({
       }
     }
 
-    onMounted(() => {
-      highlightCode()
-    })
+    watch(
+      () => props.code,
+      () => {
+        highlightCode()
+      },
+      {
+        immediate: true,
+      },
+    )
 
     const toggleExpand = () => {
       isExpanded.value = !isExpanded.value
@@ -92,7 +94,11 @@ export const CodeBlock = defineComponent({
             </div>
           )}
           <pre class={['code-block', { hidden: isLoading.value }]}>
-            <code ref={highlightedCodeRef} class={props.language ? `language-${props.language}` : ''} />
+            <code
+              v-html={highlightedCode.value}
+              ref={highlightedCodeRef}
+              class={props.language ? `language-${props.language}` : ''}
+            />
           </pre>
         </div>
       </>

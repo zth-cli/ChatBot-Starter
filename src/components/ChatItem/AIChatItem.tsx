@@ -76,7 +76,7 @@ export const AIChatItem = defineComponent({
         {props.render?.()}
         {isPlugin.value && <p>插件</p>}
         {props.item.content ? (
-          <RenderMarkdown class='w-full' data={props.item.content} loading={isLoading.value} id={props.item.id} />
+          <RenderMarkdown class='w-full' markdown={props.item.content} loading={isLoading.value} id={props.item.id} />
         ) : (
           <span class='text-sm text-black/50 dark:text-foreground'></span>
         )}

@@ -69,6 +69,7 @@
     "@eslint/js": "^9.12.0",
     "@inspira-ui/plugins": "^0.0.1",
     "@rzx/chat-plugin-sdk": "^1.0.2",
+    "@types/markdown-it": "^14.1.2",
     "@types/node": "^20.16.11",
     "@vitejs/plugin-vue": "^5.1.4",
     "@vitejs/plugin-vue-jsx": "^4.0.1",
