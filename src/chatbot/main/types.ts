@@ -112,14 +112,6 @@ export interface ChatSession {
   lastError?: Error
 }
 
-export interface StreamProcessorHandlers {
-  onStart?: () => Promise<void> | void
-  onToken?: (token: string) => Promise<void> | void
-  onToolCall?: (toolCall: ToolCall[]) => Promise<void> | void
-  onFinish?: (fullText: string) => Promise<void> | void
-  onError?: (error: any) => Promise<void> | void
-}
-
 export interface MessageHandler {
   onCreate: () => ChatMessage
   onToolCall?: (message: ChatMessage, toolCalls: ToolCall[]) => void
