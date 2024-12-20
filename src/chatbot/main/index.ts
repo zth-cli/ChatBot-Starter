@@ -1,8 +1,9 @@
-import { ChatConfig, MessageHandler, ChatMessage, MessageStatus, ToolCall } from './types'
+import { ChatConfig, MessageHandler, ChatMessage, MessageStatus } from './types'
 import { StreamProcessor } from './StreamProcessor'
 import { ChatApiClient } from './ChatApiClient'
 import { NetworkError } from './ChatError'
 import { sleep } from './helper'
+import { ToolCall } from '../processor/types'
 
 export class ChatCore {
   private currentMessage: ChatMessage | undefined
@@ -30,7 +31,7 @@ export class ChatCore {
     isRetry: boolean = false,
   ): Promise<void> {
     if (!isRetry) {
-      this.currentMessage = this.messageHandler.onCreate()
+      this.currentMessage = this.currentMessage ?? this.messageHandler.onCreate()
     }
     this.controller = new AbortController()
 
@@ -56,6 +57,7 @@ export class ChatCore {
   public setCurrentMessage(message: ChatMessage): void {
     this.currentMessage = message
   }
+
   private async retry<T extends { messages: any[]; [x: string]: any }>(message: T): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, this.config.retryDelay))
     return this.sendMessage(message, true)

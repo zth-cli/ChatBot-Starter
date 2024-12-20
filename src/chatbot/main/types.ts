@@ -1,3 +1,4 @@
+import { ToolCall } from '../processor/types'
 export type Role = 'user' | 'assistant' | 'system' | 'tool'
 
 /**
@@ -80,16 +81,6 @@ export enum MessageStatus {
   ERROR = 4,
   STOP = 5,
 }
-export type ToolCall = {
-  index: number
-  id?: string
-  type?: any
-  function: {
-    name: string
-    arguments: string
-  }
-}
-
 export interface ToolResult {
   toolCallId: string
   result: any
