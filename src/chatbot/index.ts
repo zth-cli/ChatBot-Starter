@@ -2,7 +2,8 @@ import { ChatCore } from './main'
 import { useChatStore, useToolStore } from '@/store'
 import { ChatApiClient, ChatPayload } from './main/ChatApiClient'
 import { ChatSessionManager } from './main/ChatSessionManager'
-import { ChatConfig, ChatMessage, MessageHandler, MessageStatus, UseChatHookFn } from './main/types'
+import { ChatConfig, ChatMessage, MessageHandler, MessageStatus, UseChatHookFn, ToolResult } from './main/types'
+import { handleToolCallsResponse } from './main/helper'
 
 export const useChat: UseChatHookFn = () => {
   const chatStore = useChatStore()
@@ -20,10 +21,56 @@ export const useChat: UseChatHookFn = () => {
 
   // 创建API客户端
   const baseUrl = import.meta.env.DEV ? '/api' : ''
-  const apiClient = new ChatApiClient(
-    `${baseUrl}/llm/skillCenter/plugin/chat/openai/formdata`,
-    '61c36ab3c518418b916a6ffc2190d170',
-  )
+  const apiClient = new ChatApiClient(`${baseUrl}/llm/aios/chat/openai`, `${baseUrl}/llm/aios/plugin/gateway`)
+
+  /**
+   * @description 处理流式响应的工具调用结束
+   * @param message 当前消息
+   * @param chatId 会话id
+   */
+  type SumInfo = { isSummarize: 1 | 2; summarizeInfo: string }
+  const handleToolCallsFinish = async (
+    message: ChatMessage,
+    sessionId: string,
+  ): Promise<{ message: ChatMessage; otherInfo: SumInfo }> => {
+    let otherInfo: SumInfo
+    try {
+      const response = await apiClient.gateway({
+        sessionId,
+        ...message.toolCalls,
+      })
+      const data = await response.json()
+      otherInfo = data.otherInfo
+      if (otherInfo?.isSummarize !== 1) {
+        message.toolResults = {
+          toolCallId: message.toolCalls!.id,
+          result: data.code ? data.data : data.msg,
+        } as ToolResult
+      }
+
+      message.status = data.code ? MessageStatus.COMPLETE : MessageStatus.ERROR
+    } catch (error) {
+      message.toolResults = { toolCallId: message.toolCalls!.id, result: '调用失败' }
+      message.status = MessageStatus.ERROR
+    }
+    return { message, otherInfo }
+  }
+  /**
+   * @description 针对search-engine的特殊处理
+   * @param message 当前消息
+   * @param chatId 会话id
+   */
+  const handleSearchEngineToolCallsFinish = async (message: ChatMessage, otherInfo: SumInfo, chatId: string) => {
+    if (otherInfo?.isSummarize === 1) {
+      const lastContent = `总结内容: ${JSON.stringify(otherInfo?.summarizeInfo)}`
+      const chatCore = await sessionManager.getSession(chatId)
+      chatCore.setCurrentMessage({ ...message, content: '', status: MessageStatus.PENDING })
+      await chatCore.sendMessage<ChatPayload>({
+        sessionId: chatId,
+        messages: [{ content: lastContent, role: 'user' as const }],
+      })
+    }
+  }
 
   // 创建消息处理器
   const createMessageHandler = (chatId: string): MessageHandler => ({
@@ -45,15 +92,22 @@ export const useChat: UseChatHookFn = () => {
     onToken: (message) => {
       chatStore.updateCurrentChatMessage(message)
     },
-    onComplete: (message) => {
-      chatStore.updateCurrentChatMessage(message)
+    onComplete: async (message) => {
+      if (message.toolCalls?.length) {
+        const toolCalls = handleToolCallsResponse(message.toolCalls)
+        message.toolCalls = toolCalls
+        const { message: newMessage, otherInfo } = await handleToolCallsFinish(message, chatId)
+        if (otherInfo?.isSummarize === 1) {
+          await handleSearchEngineToolCallsFinish(newMessage, otherInfo, chatId)
+        } else {
+          chatStore.updateCurrentChatMessage({ ...newMessage, status: MessageStatus.COMPLETE })
+        }
+      } else {
+        chatStore.updateCurrentChatMessage(message)
+      }
+      // 获取推荐问题
       chatStore.updateChatHistoryStatusById(chatId, false)
       sessionManager.cleanupSession(chatId)
-      /**
-       * 1. 可以调用工具，如果有
-       * 2. 可以让模型根据返回内容生成推荐问题
-       * 3. 可以让模型根据返回内容生成一个对话标题
-       */
     },
     onError: (message, error) => {
       chatStore.updateCurrentChatMessage({
@@ -98,10 +152,11 @@ export const useChat: UseChatHookFn = () => {
       const chatCore = await sessionManager.getSession(chatId)
 
       apiClient.setApiClientHeaders({
-        ChatToken: '27ecabac-764e-4132-b4d2-fa50b7ec1b65',
+        ChatToken: import.meta.env.VITE_CHAT_TOKEN,
       })
       await chatCore.sendMessage<ChatPayload>({
-        chatFlowId: import.meta.env.VITE_CHAT_FLOW_ID,
+        question: message,
+        sessionId: chatId,
         messages: [{ role: 'user', content: message }],
       })
     },
@@ -126,10 +181,11 @@ export const useChat: UseChatHookFn = () => {
         const userMessage = previousMessage.content
         const chatCore = await sessionManager.getSession(chatId)
         apiClient.setApiClientHeaders({
-          ChatToken: '27ecabac-764e-4132-b4d2-fa50b7ec1b65',
+          ChatToken: import.meta.env.VITE_CHAT_TOKEN,
         })
         await chatCore.sendMessage<ChatPayload>({
-          chatFlowId: import.meta.env.VITE_CHAT_FLOW_ID,
+          question: userMessage,
+          sessionId: chatId,
           messages: [{ role: 'user', content: userMessage }],
         })
       }

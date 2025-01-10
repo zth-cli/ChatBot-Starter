@@ -2,20 +2,15 @@ import { AbortError, NetworkError } from './ChatError'
 import { MessageType, ToolCall } from './types'
 
 const CHAT_CONFIG = {
-  CHAT_FLOW_ID: import.meta.env.VITE_CHAT_FLOW_ID,
   stream: true,
-  model: 'gpt-40',
-  temperature: 0.6,
-  top_p: 1,
-  frequency_penalty: 0,
-  presence_penalty: 0,
+  modelTokenId: '201',
 } as const
 
 export class ChatApiClient {
   private headers: Record<string, string> = {}
   constructor(
     private apiUrl: string,
-    private apiKey: string,
+    private gatewayUrl: string,
   ) {}
 
   setHeaders(headers: Record<string, string>) {
@@ -27,7 +22,6 @@ export class ChatApiClient {
       const response = await fetch(this.apiUrl, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${this.apiKey}`,
           ...this.headers,
         },
         body: formData,
@@ -41,6 +35,17 @@ export class ChatApiClient {
       }
       throw new NetworkError(`创建聊天流失败: ${error.message}`)
     }
+  }
+  async gateway(params: any): Promise<Response> {
+    return await fetch(this.gatewayUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Lobe-Plugin-Settings': `{"BING_API_KEY":"${import.meta.env.VITE_BING_API_KEY}","count":"8"}`,
+        ...this.headers,
+      },
+      body: JSON.stringify(params),
+    })
   }
   setApiClientHeaders(headers: Record<string, string>) {
     this.headers = headers
@@ -76,14 +81,10 @@ export class ChatApiClient {
 }
 export interface ChatPayload {
   question?: string
-  frequency_penalty?: 0
   messages: MessageType[]
+  sessionId: string
   files?: File[]
-  model?: string
-  presence_penalty?: 0
+  modelTokenId?: '201' | '32B' | '184'
   stream?: boolean
-  temperature?: 0.6
   tools?: ToolCall[]
-  top_p?: 1
-  [key: string]: any
 }

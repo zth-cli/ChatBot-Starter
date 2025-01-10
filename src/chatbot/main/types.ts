@@ -1,4 +1,5 @@
 import { ToolCall } from '../processor/types'
+
 export type Role = 'user' | 'assistant' | 'system' | 'tool'
 
 /**
@@ -49,8 +50,8 @@ export interface ChatMessage {
   content: string
   status: MessageStatus
   date: string
-  toolCalls?: ToolCall[]
-  toolResults?: ToolResult[]
+  toolCalls?: any
+  toolResults?: ToolResult
   parentMessageId?: string
   retryCount?: number
   /**
@@ -194,3 +195,5 @@ export type BuiltinType =
   | 'pie-chart'
   | 'area-chart'
 export type PluginType = 'standalone' | BuiltinType
+
+export type { ToolCall }
